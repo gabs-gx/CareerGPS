@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareerGPS</title>
+<meta name="description" content="CareerGPS analiza la demanda de habilidades del mercado laboral y la compara con tu perfil.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📍</text></svg>">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo" id="logo">📍 CareerGPS</div>
+  <nav class="tabs" id="tabs">
+    <button class="tab-btn" data-view="demanda">Explorar demanda</button>
+    <button class="tab-btn" data-view="relacionados">Puestos relacionados</button>
+    <button class="tab-btn" data-view="perfil">Mi perfil</button>
+    <button class="tab-btn" data-view="alineacion">Mi alineación</button>
+  </nav>
+  <div class="topbar-right">
+    <button class="btn-pill" id="btn-ingresar">Ingresar</button>
+    <div class="user-badge" title="Mi perfil">G</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- LANDING -->
+  <section id="view-landing" class="view hero">
+    <h1>No te decimos dónde postular.<br><span class="accent-text">Te mostramos hacia dónde podrías prepararte.</span></h1>
+    <p class="subtitle">CareerGPS analiza la demanda real de habilidades del mercado laboral y la compara con tu perfil, para que sepas qué reforzar antes de postular.</p>
+    <button class="btn-primary" id="btn-registrar-cta">Registrar mi perfil ›</button>
+
+    <div class="feature-cards">
+      <div class="feature-card">
+        <div class="feature-icon indigo">📡</div>
+        <h3>Radar del mercado</h3>
+        <p>Habilidades más pedidas por tipo de puesto.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon lime">🔗</div>
+        <h3>Puestos relacionados</h3>
+        <p>Explora perfiles afines según sus habilidades.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon indigo">🎯</div>
+        <h3>Tu alineación</h3>
+        <p>Coincidencias y brechas frente a tu perfil.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMANDA -->
+  <section id="view-demanda" class="view">
+    <h2>¿Qué perfil profesional quieres explorar?</h2>
+    <div class="pill-group" id="puestos-demanda"></div>
+    <button class="btn-primary" id="btn-ver-demanda">Ver demanda ›</button>
+
+    <div id="demanda-resultado" class="card hidden">
+      <div class="card-header">
+        <h3 id="demanda-titulo"></h3>
+        <span class="badge" id="demanda-total"></span>
+      </div>
+      <div id="demanda-barras"></div>
+      <button class="btn-secondary" id="btn-ver-relacionados-desde-demanda">Ver puestos relacionados ›</button>
+    </div>
+    <p id="demanda-error" class="error-msg hidden"></p>
+  </section>
+
+  <!-- RELACIONADOS -->
+  <section id="view-relacionados" class="view">
+    <h2>¿Con qué puesto quieres comparar?</h2>
+    <div class="pill-group" id="puestos-relacionados"></div>
+    <button class="btn-primary" id="btn-ver-relacionados">Ver puestos relacionados ›</button>
+
+    <div id="relacionados-resultado" class="card hidden">
+      <h3 id="relacionados-titulo"></h3>
+      <div id="relacionados-lista"></div>
+    </div>
+    <p id="relacionados-error" class="error-msg hidden"></p>
+  </section>
+
+  <!-- PERFIL -->
+  <section id="view-perfil" class="view">
+    <div class="card">
+      <h3>Mi perfil</h3>
+      <label>Carrera</label>
+      <input type="text" id="input-carrera" placeholder="Ej. Ingeniería de Sistemas">
+
+      <label>Agregar habilidad</label>
+      <div class="inline-form">
+        <select id="select-habilidad"></select>
+        <select id="select-nivel">
+          <option value="dominado">Dominado</option>
+          <option value="basico">Básico</option>
+          <option value="no tiene">No tiene</option>
+        </select>
+        <button class="btn-secondary" id="btn-agregar-habilidad">Agregar</button>
+      </div>
+
+      <div id="habilidades-pendientes"></div>
+
+      <button class="btn-primary" id="btn-guardar-perfil">Guardar perfil</button>
+      <p id="perfil-status" class="status-msg" role="status"></p>
+    </div>
+
+    <div class="card">
+      <h3>Habilidades ya registradas</h3>
+      <div id="habilidades-registradas">
+        <p class="muted">Todavía no registraste tu perfil.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ALINEACION -->
+  <section id="view-alineacion" class="view">
+    <h2>Compara tu perfil contra un puesto</h2>
+    <div class="pill-group" id="puestos-alineacion"></div>
+    <button class="btn-primary" id="btn-ver-alineacion">Ver mi alineación ›</button>
+
+    <div id="alineacion-resultado" class="card hidden">
+      <h3 id="alineacion-titulo"></h3>
+
+      <div class="alineacion-box ok">
+        <strong>✓ Coincidencias</strong>
+        <div id="alineacion-coincidencias" class="chip-group"></div>
+      </div>
+
+      <div class="alineacion-box warn">
+        <strong>↗ Podrías fortalecer</strong>
+        <div id="alineacion-fortalecer" class="chip-group"></div>
+        <p class="muted">Aparecen en la mayoría de las ofertas analizadas para este puesto.</p>
+      </div>
+    </div>
+    <p id="alineacion-error" class="error-msg hidden"></p>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<footer class="footer">CareerGPS · Proyecto académico UTP · Datos de ofertas de ejemplo, solo con fines informativos.</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>
