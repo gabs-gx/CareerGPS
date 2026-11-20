@@ -16,16 +16,46 @@ const state = {
   puestoRelacionadosId: null,
   puestoAlineacionId: null,
   estudianteId: null,
-  nombre: null,
+  nombres: null,
+  apellidos: null,
+  correo: null,
   carrera: null,
 };
 
 const VISTAS_LIBRES = ["landing", "perfil", "login"];
 
 try {
-  state.estudianteId = localStorage.getItem("careergps_estudiante_id");
-  state.nombre = localStorage.getItem("careergps_nombre");
+  const guardada = JSON.parse(localStorage.getItem("careergps_sesion") || "null");
+  if (guardada && guardada.id) {
+    state.estudianteId = String(guardada.id);
+    state.nombres = guardada.nombres;
+    state.apellidos = guardada.apellidos;
+    state.correo = guardada.correo;
+    state.carrera = guardada.carrera;
+  }
 } catch (e) { }
+
+function nombreCompleto() {
+  return [state.nombres, state.apellidos].filter(Boolean).join(" ");
+}
+
+function guardarSesion() {
+  try {
+    localStorage.setItem("careergps_sesion", JSON.stringify({
+      id: state.estudianteId, nombres: state.nombres, apellidos: state.apellidos,
+      correo: state.correo, carrera: state.carrera,
+    }));
+  } catch (e) { }
+}
+
+function aplicarSesion(s) {
+  state.estudianteId = String(s.id);
+  state.nombres = s.nombres;
+  state.apellidos = s.apellidos;
+  state.correo = s.correo;
+  state.carrera = s.carrera;
+  guardarSesion();
+}
 
 const $ = (id) => document.getElementById(id);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -114,7 +144,10 @@ function irAlApp(vista) {
 }
 
 function actualizarPasos() {
-  const datos = $("input-nombre").value.trim() !== "" && $("input-carrera").value.trim() !== "";
+  const v = (id) => $(id).value.trim();
+  const correoOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v("input-correo"));
+  const datos = v("input-nombres") !== "" && v("input-apellidos") !== "" && v("input-carrera") !== "" &&
+    (sesionActiva() || (correoOk && $("input-password").value.length >= 8));
   const habilidades = Object.keys(state.nivelesUI).length > 0;
   const completos = [datos, habilidades, datos && habilidades];
   document.querySelectorAll(".paso").forEach((p, i) => {
@@ -141,45 +174,53 @@ function actualizarSesionUI() {
     ? "Actualiza tus datos y habilidades cuando quieras."
     : "Lo necesitamos para comparar tus habilidades con lo que pide el mercado.";
   $("btn-guardar-perfil").textContent = on ? "Guardar cambios" : "Crear mi perfil y entrar ›";
-  $("user-badge").textContent = state.nombre ? state.nombre.trim()[0].toUpperCase() : "👤";
-  $("menu-nombre").textContent = state.nombre || "Mi cuenta";
+  $("user-badge").textContent = state.nombres ? state.nombres.trim()[0].toUpperCase() : "👤";
+  $("menu-nombre").textContent = nombreCompleto() || "Mi cuenta";
   $("menu-carrera").textContent = state.carrera || "";
-  $("menu-codigo").textContent = on ? "Código: " + state.estudianteId : "";
+  $("menu-codigo").textContent = state.correo || "";
+  ["input-nombres", "input-apellidos", "input-correo"].forEach((id) => { $(id).disabled = on; });
+  $("campo-password").classList.toggle("hidden", on);
   actualizarPasos();
 }
 
 function cerrarSesion() {
   olvidarEstudiante();
-  $("input-nombre").value = "";
-  $("input-carrera").value = "";
+  ["input-nombres", "input-apellidos", "input-correo", "input-password", "input-carrera"].forEach((id) => { $(id).value = ""; });
   $("user-menu").classList.add("hidden");
   renderChips();
   toast("Sesión cerrada");
   mostrarVista("landing");
 }
 
-async function ingresarConCodigo() {
+async function ingresar() {
   const errorEl = $("login-error");
   errorEl.classList.add("hidden");
-  const codigo = $("input-codigo").value.trim();
-  if (!/^\d+$/.test(codigo)) return mostrarError("login-error", "Escribe tu código, que es un número.");
+  const correo = $("input-login-correo").value.trim();
+  const password = $("input-login-password").value;
+  if (!correo || !password) return mostrarError("login-error", "Escribe tu correo y tu contraseña.");
+  const btn = $("btn-login");
+  btn.disabled = true;
   try {
-    const est = await fetchJson(API + "/estudiantes/" + codigo);
-    state.estudianteId = String(est.id);
-    state.carrera = est.carrera;
-    try { localStorage.setItem("careergps_estudiante_id", est.id); } catch (e) { }
-    $("input-codigo").value = "";
+    const sesion = await fetchJson(API + "/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ correo, password }),
+    });
+    aplicarSesion(sesion);
+    $("input-login-password").value = "";
     await cargarMiPerfil();
     toast("¡Qué bueno verte de nuevo!", "ok");
     mostrarVista("demanda");
   } catch (e) {
-    mostrarError("login-error", e.status === 404 ? "No encontramos un perfil con ese código." : e.message);
+    mostrarError("login-error", e.message);
+  } finally {
+    btn.disabled = false;
   }
 }
 
 function mostrarBienvenida() {
-  $("modal-titulo").textContent = "¡Listo, " + (state.nombre || "bienvenido/a") + "!";
-  $("modal-codigo").textContent = state.estudianteId;
+  $("modal-titulo").textContent = "¡Listo, " + (state.nombres || "bienvenido/a") + "!";
+  $("modal-codigo").textContent = state.correo || "";
   $("modal-bienvenida").classList.remove("hidden");
 }
 
@@ -354,14 +395,13 @@ function renderChips() {
 
 function olvidarEstudiante() {
   state.estudianteId = null;
-  state.nombre = null;
+  state.nombres = null;
+  state.apellidos = null;
+  state.correo = null;
   state.carrera = null;
   state.nivelesGuardados = {};
   state.nivelesUI = {};
-  try {
-    localStorage.removeItem("careergps_estudiante_id");
-    localStorage.removeItem("careergps_nombre");
-  } catch (e) { }
+  try { localStorage.removeItem("careergps_sesion"); } catch (e) { }
   actualizarSesionUI();
 }
 
@@ -370,7 +410,9 @@ async function cargarMiPerfil() {
   try {
     const est = await fetchJson(API + "/estudiantes/" + state.estudianteId);
     if (est && est.carrera) { $("input-carrera").value = est.carrera; state.carrera = est.carrera; }
-    if (state.nombre) $("input-nombre").value = state.nombre;
+    $("input-nombres").value = state.nombres || "";
+    $("input-apellidos").value = state.apellidos || "";
+    $("input-correo").value = state.correo || "";
     const lista = await fetchJson(API + "/estudiantes/" + state.estudianteId + "/habilidades");
     state.nivelesGuardados = {};
     lista.forEach((h) => { state.nivelesGuardados[h.habilidadId] = h.nivel; });
@@ -385,50 +427,49 @@ async function cargarMiPerfil() {
 async function guardarPerfil() {
   const btn = $("btn-guardar-perfil");
   const statusEl = $("perfil-status");
-  const carrera = $("input-carrera").value.trim();
-  const nombre = $("input-nombre").value.trim();
+  const v = (id) => $(id).value.trim();
+  const carrera = v("input-carrera");
   const eraNuevo = !sesionActiva();
   statusEl.className = "status-msg";
   statusEl.textContent = "";
-  if (!nombre || !carrera) {
+  if (!carrera || (eraNuevo && (!v("input-nombres") || !v("input-apellidos") || !v("input-correo") || !$("input-password").value))) {
     statusEl.className = "error-msg";
-    statusEl.textContent = "Escribe tu nombre y tu carrera para continuar.";
+    statusEl.textContent = "Completa todos los campos para continuar.";
     return;
   }
   btn.disabled = true;
   btn.textContent = "Guardando…";
   try {
-    const opts = (method) => ({
+    const json = (method, cuerpo) => ({
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ carrera }),
+      body: JSON.stringify(cuerpo),
     });
-    if (state.estudianteId) {
+    if (eraNuevo) {
+      const sesion = await fetchJson(API + "/auth/registro", json("POST", {
+        nombres: v("input-nombres"), apellidos: v("input-apellidos"), correo: v("input-correo"),
+        password: $("input-password").value, carrera,
+      }));
+      aplicarSesion(sesion);
+      $("input-password").value = "";
+    } else {
       try {
-        await fetchJson(API + "/estudiantes/" + state.estudianteId, opts("PUT"));
+        await fetchJson(API + "/estudiantes/" + state.estudianteId, json("PUT", { carrera }));
       } catch (e) {
-        if (e.status !== 404) throw e;
-        const previos = Object.assign({}, state.nivelesUI);
-        olvidarEstudiante();
-        state.nivelesUI = previos;
+        if (e.status === 404) {
+          olvidarEstudiante();
+          throw new Error("Tu cuenta ya no existe. Crea una nueva.");
+        }
+        throw e;
       }
-    }
-    if (!state.estudianteId) {
-      const estudiante = await fetchJson(API + "/estudiantes", opts("POST"));
-      state.estudianteId = estudiante.id;
-      try { localStorage.setItem("careergps_estudiante_id", estudiante.id); } catch (e) { }
+      state.carrera = carrera;
+      guardarSesion();
     }
     for (const id of cambiosPendientes()) {
-      await fetchJson(API + "/estudiantes/" + state.estudianteId + "/habilidades", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ habilidadId: Number(id), nivel: state.nivelesUI[id] }),
-      });
+      await fetchJson(API + "/estudiantes/" + state.estudianteId + "/habilidades",
+        json("POST", { habilidadId: Number(id), nivel: state.nivelesUI[id] }));
     }
     state.nivelesGuardados = Object.assign({}, state.nivelesUI);
-    state.nombre = nombre;
-    state.carrera = carrera;
-    try { localStorage.setItem("careergps_nombre", nombre); } catch (e) { }
     actualizarSesionUI();
     renderChips();
     if (eraNuevo) mostrarBienvenida();
@@ -489,10 +530,19 @@ $("btn-ingresar").addEventListener("click", () => irAlApp("login"));
 $("btn-tengo-cuenta").addEventListener("click", () => irAlApp("login"));
 $("btn-ir-crear").addEventListener("click", () => irAlApp("perfil"));
 $("btn-registrar-cta").addEventListener("click", () => irAlApp(sesionActiva() ? "demanda" : "perfil"));
-$("btn-login").addEventListener("click", ingresarConCodigo);
-$("input-codigo").addEventListener("keydown", (e) => { if (e.key === "Enter") ingresarConCodigo(); });
-$("input-nombre").addEventListener("input", actualizarPasos);
-$("input-carrera").addEventListener("input", actualizarPasos);
+$("btn-login").addEventListener("click", ingresar);
+["input-login-correo", "input-login-password"].forEach((id) => {
+  $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") ingresar(); });
+});
+["input-nombres", "input-apellidos", "input-correo", "input-password", "input-carrera"].forEach((id) => {
+  $(id).addEventListener("input", actualizarPasos);
+});
+$("btn-ver-password").addEventListener("click", () => {
+  const campo = $("input-password");
+  const oculto = campo.type === "password";
+  campo.type = oculto ? "text" : "password";
+  $("btn-ver-password").textContent = oculto ? "Ocultar contraseña" : "Mostrar contraseña";
+});
 $("btn-logout").addEventListener("click", cerrarSesion);
 $("user-badge").addEventListener("click", (e) => { e.stopPropagation(); $("user-menu").classList.toggle("hidden"); });
 document.addEventListener("click", () => $("user-menu").classList.add("hidden"));

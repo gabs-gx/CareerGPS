@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.careergps.shared.domain.exception.CorreoYaRegistradoException;
+import com.careergps.shared.domain.exception.CredencialesInvalidasException;
 import com.careergps.shared.domain.exception.DatosInsuficientesException;
 import com.careergps.shared.domain.exception.RecursoNoEncontradoException;
 
@@ -24,6 +26,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DatosInsuficientesException.class)
     public ResponseEntity<Map<String, String>> manejarDatosInsuficientes(DatosInsuficientesException ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of("mensaje", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CorreoYaRegistradoException.class)
+    public ResponseEntity<Map<String, String>> manejarCorreoRepetido(CorreoYaRegistradoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("mensaje", ex.getMessage()));
+    }
+
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    public ResponseEntity<Map<String, String>> manejarCredenciales(CredencialesInvalidasException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("mensaje", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

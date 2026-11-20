@@ -102,9 +102,11 @@
   <section id="view-login" class="view">
     <div class="card login-card">
       <h3>Ingresar</h3>
-      <p class="muted">Escribe el código que recibiste al crear tu perfil.</p>
-      <label for="input-codigo">Código de perfil</label>
-      <input type="text" inputmode="numeric" id="input-codigo" placeholder="Ej. 12">
+      <p class="muted">Entra con el correo y la contraseña de tu cuenta.</p>
+      <label for="input-login-correo">Correo</label>
+      <input type="email" id="input-login-correo" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+      <label for="input-login-password">Contraseña</label>
+      <input type="password" id="input-login-password" autocomplete="current-password">
       <button class="btn-primary" id="btn-login">Ingresar ›</button>
       <p id="login-error" class="error-msg hidden"></p>
       <button class="link-btn" id="btn-ir-crear">No tengo perfil · Crear uno</button>
@@ -122,8 +124,23 @@
     <div class="card">
       <h3 id="perfil-titulo">Crea tu perfil</h3>
       <p class="muted" id="perfil-subtitulo">Lo necesitamos para comparar tus habilidades con lo que pide el mercado.</p>
-      <label for="input-nombre">Nombre</label>
-      <input type="text" id="input-nombre" placeholder="Ej. Gabriela" maxlength="40">
+      <div class="fila-2">
+        <div>
+          <label for="input-nombres">Nombres</label>
+          <input type="text" id="input-nombres" placeholder="Ej. Gabriela" maxlength="60" autocomplete="given-name">
+        </div>
+        <div>
+          <label for="input-apellidos">Apellidos</label>
+          <input type="text" id="input-apellidos" placeholder="Ej. Gonzales" maxlength="60" autocomplete="family-name">
+        </div>
+      </div>
+      <label for="input-correo">Correo</label>
+      <input type="email" id="input-correo" placeholder="tucorreo@ejemplo.com" autocomplete="email">
+      <div id="campo-password">
+        <label for="input-password">Contraseña</label>
+        <input type="password" id="input-password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+        <button type="button" class="link-btn" id="btn-ver-password">Mostrar contraseña</button>
+      </div>
       <label for="input-carrera">Carrera</label>
       <input type="text" id="input-carrera" placeholder="Ej. Ingeniería de Sistemas">
 
@@ -175,9 +192,9 @@
   <div class="modal-card">
     <div class="modal-emoji">🎉</div>
     <h3 id="modal-titulo"></h3>
-    <p>Tu código de perfil es</p>
-    <div class="codigo" id="modal-codigo"></div>
-    <p class="muted">Guárdalo: con él puedes volver a ingresar cuando quieras.</p>
+    <p>Tu cuenta quedó creada con</p>
+    <div class="codigo correo" id="modal-codigo"></div>
+    <p class="muted">Ya puedes volver a ingresar con tu correo y contraseña cuando quieras.</p>
     <button class="btn-primary" id="btn-modal-ok">Explorar el mercado ›</button>
   </div>
 </div>

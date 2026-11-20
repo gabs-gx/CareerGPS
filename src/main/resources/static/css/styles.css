@@ -476,3 +476,13 @@ button:disabled { opacity: 0.6; cursor: progress; }
   border-radius: 14px; padding: 8px 0; margin: 10px 0 14px; letter-spacing: 0.08em;
 }
 @keyframes saltar { from { opacity: 0; transform: scale(0.8) translateY(20px); } to { opacity: 1; transform: none; } }
+
+input[type="email"], input[type="password"] {
+  width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;
+}
+input[type="email"]:focus, input[type="password"]:focus { border-color: var(--indigo); }
+input:disabled { background: var(--cream); color: var(--muted); cursor: not-allowed; }
+.fila-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.link-btn.pequeno { margin-top: 8px; font-size: 0.8rem; }
+.codigo.correo { font-size: 1.05rem; letter-spacing: 0; word-break: break-all; padding: 14px 10px; }
+@media (max-width: 600px) { .fila-2 { grid-template-columns: 1fr; } }

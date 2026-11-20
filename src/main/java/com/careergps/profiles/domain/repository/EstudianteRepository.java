@@ -9,6 +9,7 @@ public interface EstudianteRepository {
     Optional<Estudiante> findById(Long id);
 
     boolean existsById(Long id);
+    Optional<Estudiante> findByCorreo(String correo);
 
     Estudiante save(Estudiante estudiante);
 
