@@ -58,8 +58,12 @@ public class EstudianteService {
         Habilidad habilidad = habilidadRepository.findById(dto.habilidadId())
                 .orElseThrow(() -> new RecursoNoEncontradoException("Habilidad no encontrada: " + dto.habilidadId()));
 
-        return estudianteHabilidadRepository.save(
-                new EstudianteHabilidad(estudiante.getId(), habilidad.getId(), dto.nivel()));
+        EstudianteHabilidad registro = estudianteHabilidadRepository.findByEstudianteId(estudiante.getId()).stream()
+                .filter(h -> h.getHabilidadId().equals(habilidad.getId()))
+                .findFirst()
+                .orElseGet(() -> new EstudianteHabilidad(estudiante.getId(), habilidad.getId(), dto.nivel()));
+        registro.setNivel(dto.nivel());
+        return estudianteHabilidadRepository.save(registro);
     }
 
     public List<EstudianteHabilidad> listarHabilidades(Long estudianteId) {

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.careergps.demand.application.dto.DemandaDTO;
 import com.careergps.demand.application.dto.PuestoRelacionadoDTO;
+import com.careergps.demand.application.dto.PuestoResumenDTO;
 import com.careergps.demand.domain.model.Puesto;
 import com.careergps.demand.application.service.PuestoService;
 
@@ -25,6 +26,11 @@ public class PuestoController {
     @GetMapping
     public List<Puesto> listarPuestos() {
         return puestoService.listarPuestos();
+    }
+
+    @GetMapping("/resumen")
+    public List<PuestoResumenDTO> listarResumen() {
+        return puestoService.listarResumen();
     }
 
     @GetMapping("/{id}/demanda")

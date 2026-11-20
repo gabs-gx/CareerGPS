@@ -50,50 +50,107 @@ public class DataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (!puestoRepository.findAll().isEmpty() || !habilidadRepository.findAll().isEmpty()) {
-            return;
-        }
+        boolean primeraVez = puestoRepository.findAll().isEmpty();
 
         Map<String, Habilidad> habilidades = new HashMap<>();
-        for (String nombre : List.of("SQL", "Excel", "Power BI", "Python", "Tableau", "Estadistica", "Machine Learning", "Git", "Docker", "Spark", "AWS")) {
-            habilidades.put(nombre, habilidadRepository.save(new Habilidad(nombre)));
+        for (String nombre : List.of("SQL", "Excel", "Power BI", "Python", "Tableau", "Estadistica", "Machine Learning", "Git", "Docker", "Spark", "AWS",
+                "Java", "Spring Boot", "JavaScript", "HTML/CSS", "React", "Linux", "Kubernetes", "CI/CD", "Selenium", "Figma", "Node.js")) {
+            habilidades.put(nombre, habilidadRepository.findByNombreIgnoreCase(nombre)
+                    .orElseGet(() -> habilidadRepository.save(new Habilidad(nombre))));
         }
 
-        Puesto dataAnalyst = puestoRepository.save(new Puesto("Data Analyst"));
-        Puesto dataScientist = puestoRepository.save(new Puesto("Data Scientist"));
-        Puesto dataEngineer = puestoRepository.save(new Puesto("Data Engineer"));
+        if (primeraVez) {
+            Puesto dataAnalyst = puestoRepository.save(new Puesto("Data Analyst"));
+            Puesto dataScientist = puestoRepository.save(new Puesto("Data Scientist"));
+            Puesto dataEngineer = puestoRepository.save(new Puesto("Data Engineer"));
 
-        cargarOfertas("DA", dataAnalyst, habilidades, List.of(
-                List.of("SQL", "Excel", "Power BI", "Python"),
-                List.of("SQL", "Excel", "Power BI", "Python"),
-                List.of("SQL", "Excel", "Power BI", "Python"),
-                List.of("SQL", "Excel", "Power BI", "Python"),
-                List.of("SQL", "Excel", "Power BI", "Python"),
-                List.of("SQL", "Excel", "Power BI"),
-                List.of("SQL", "Excel", "Power BI"),
-                List.of("SQL", "Excel"),
-                List.of("SQL"),
-                List.of("Tableau")));
+            cargarOfertas("DA", dataAnalyst, habilidades, List.of(
+                    List.of("SQL", "Excel", "Power BI", "Python"),
+                    List.of("SQL", "Excel", "Power BI", "Python"),
+                    List.of("SQL", "Excel", "Power BI", "Python"),
+                    List.of("SQL", "Excel", "Power BI", "Python"),
+                    List.of("SQL", "Excel", "Power BI", "Python"),
+                    List.of("SQL", "Excel", "Power BI"),
+                    List.of("SQL", "Excel", "Power BI"),
+                    List.of("SQL", "Excel"),
+                    List.of("SQL"),
+                    List.of("Tableau")));
 
-        cargarOfertas("DS", dataScientist, habilidades, List.of(
-                List.of("Python", "SQL", "Estadistica", "Machine Learning"),
-                List.of("Python", "SQL", "Estadistica", "Machine Learning"),
-                List.of("Python", "Estadistica", "Machine Learning", "Git"),
-                List.of("Python", "SQL", "Machine Learning"),
-                List.of("Python", "Estadistica", "Machine Learning"),
-                List.of("Python", "SQL", "Estadistica"),
-                List.of("Python", "Machine Learning", "Git"),
-                List.of("Python", "SQL", "Machine Learning", "AWS")));
+            cargarOfertas("DS", dataScientist, habilidades, List.of(
+                    List.of("Python", "SQL", "Estadistica", "Machine Learning"),
+                    List.of("Python", "SQL", "Estadistica", "Machine Learning"),
+                    List.of("Python", "Estadistica", "Machine Learning", "Git"),
+                    List.of("Python", "SQL", "Machine Learning"),
+                    List.of("Python", "Estadistica", "Machine Learning"),
+                    List.of("Python", "SQL", "Estadistica"),
+                    List.of("Python", "Machine Learning", "Git"),
+                    List.of("Python", "SQL", "Machine Learning", "AWS")));
 
-        cargarOfertas("DE", dataEngineer, habilidades, List.of(
-                List.of("Python", "SQL", "Docker"),
-                List.of("Python", "SQL", "Git", "Spark"),
-                List.of("Python", "Docker", "Git")));
+            cargarOfertas("DE", dataEngineer, habilidades, List.of(
+                    List.of("Python", "SQL", "Docker"),
+                    List.of("Python", "SQL", "Git", "Spark"),
+                    List.of("Python", "Docker", "Git")));
 
-        Estudiante estudiante = estudianteRepository.save(new Estudiante("Ingenieria de Sistemas"));
-        estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("SQL").getId(), "dominado"));
-        estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Excel").getId(), "basico"));
-        estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Python").getId(), "no tiene"));
+            Estudiante estudiante = estudianteRepository.save(new Estudiante("Ingenieria de Sistemas"));
+            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("SQL").getId(), "dominado"));
+            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Excel").getId(), "basico"));
+            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Python").getId(), "no tiene"));
+        }
+
+        agregarPuesto("BI", "BI Analyst", habilidades, List.of(
+                List.of("SQL", "Power BI", "Excel", "Tableau"),
+                List.of("SQL", "Power BI", "Excel"),
+                List.of("Power BI", "Excel", "Estadistica"),
+                List.of("SQL", "Power BI", "Tableau"),
+                List.of("SQL", "Power BI", "Excel", "Python"),
+                List.of("Power BI", "Tableau", "Excel"),
+                List.of("SQL", "Power BI"),
+                List.of("SQL", "Excel", "Power BI", "Estadistica")));
+
+        agregarPuesto("BE", "Backend Developer", habilidades, List.of(
+                List.of("Java", "Spring Boot", "SQL", "Git"),
+                List.of("Java", "Spring Boot", "SQL", "Docker"),
+                List.of("Java", "Spring Boot", "Git", "AWS"),
+                List.of("Java", "SQL", "Git", "Docker"),
+                List.of("Node.js", "SQL", "Git", "Docker"),
+                List.of("Java", "Spring Boot", "SQL", "CI/CD"),
+                List.of("Python", "SQL", "Git", "Docker"),
+                List.of("Java", "Spring Boot", "Git"),
+                List.of("Java", "SQL", "AWS", "Docker")));
+
+        agregarPuesto("FE", "Frontend Developer", habilidades, List.of(
+                List.of("JavaScript", "HTML/CSS", "React", "Git"),
+                List.of("JavaScript", "HTML/CSS", "React"),
+                List.of("JavaScript", "HTML/CSS", "Figma", "Git"),
+                List.of("JavaScript", "React", "Git", "Node.js"),
+                List.of("JavaScript", "HTML/CSS", "React", "Figma"),
+                List.of("JavaScript", "HTML/CSS", "Git"),
+                List.of("JavaScript", "React", "HTML/CSS", "CI/CD"),
+                List.of("JavaScript", "HTML/CSS", "React", "Git")));
+
+        agregarPuesto("DO", "DevOps Engineer", habilidades, List.of(
+                List.of("Docker", "Kubernetes", "Linux", "AWS"),
+                List.of("Docker", "CI/CD", "Linux", "Git"),
+                List.of("Docker", "Kubernetes", "CI/CD", "AWS"),
+                List.of("Linux", "Docker", "Git", "Python"),
+                List.of("Docker", "Kubernetes", "Linux", "CI/CD"),
+                List.of("AWS", "Docker", "CI/CD", "Git"),
+                List.of("Linux", "Kubernetes", "AWS")));
+
+        agregarPuesto("QA", "QA Analyst", habilidades, List.of(
+                List.of("Selenium", "SQL", "Git"),
+                List.of("Selenium", "Python", "Git"),
+                List.of("SQL", "Selenium", "CI/CD"),
+                List.of("Selenium", "Git", "Java"),
+                List.of("SQL", "Selenium", "Excel"),
+                List.of("Selenium", "Python", "SQL")));
+    }
+
+    private void agregarPuesto(String prefijo, String nombre, Map<String, Habilidad> habilidades, List<List<String>> habilidadesPorOferta) {
+        boolean existe = puestoRepository.findAll().stream().anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
+        if (!existe) {
+            cargarOfertas(prefijo, puestoRepository.save(new Puesto(nombre)), habilidades, habilidadesPorOferta);
+        }
     }
 
     private void cargarOfertas(String prefijo, Puesto puesto, Map<String, Habilidad> habilidades, List<List<String>> habilidadesPorOferta) {

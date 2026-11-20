@@ -24,6 +24,11 @@
   </div>
 </header>
 
+<div id="banner-servidor" class="banner hidden" role="status">
+  <span class="spinner"></span>
+  Despertando el servidor… el plan gratuito puede tardar hasta 1 minuto la primera vez.
+</div>
+
 <main>
 
   <!-- LANDING -->
@@ -33,94 +38,92 @@
     <button class="btn-primary" id="btn-registrar-cta">Registrar mi perfil ›</button>
 
     <div class="feature-cards">
-      <div class="feature-card">
+      <div class="feature-card" data-go="demanda" tabindex="0" role="button">
         <div class="feature-icon indigo">📡</div>
         <h3>Radar del mercado</h3>
         <p>Habilidades más pedidas por tipo de puesto.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card" data-go="relacionados" tabindex="0" role="button">
         <div class="feature-icon lime">🔗</div>
         <h3>Puestos relacionados</h3>
         <p>Explora perfiles afines según sus habilidades.</p>
       </div>
-      <div class="feature-card">
+      <div class="feature-card" data-go="alineacion" tabindex="0" role="button">
         <div class="feature-icon indigo">🎯</div>
         <h3>Tu alineación</h3>
         <p>Coincidencias y brechas frente a tu perfil.</p>
       </div>
     </div>
+
+    <div class="stats" id="stats"></div>
   </section>
 
   <!-- DEMANDA -->
   <section id="view-demanda" class="view">
+    <p class="step">PASO 1</p>
     <h2>¿Qué perfil profesional quieres explorar?</h2>
-    <div class="pill-group" id="puestos-demanda"></div>
-    <button class="btn-primary" id="btn-ver-demanda">Ver demanda ›</button>
+    <div class="puesto-grid" id="puestos-demanda"></div>
+    <p id="demanda-error" class="error-msg hidden"></p>
 
     <div id="demanda-resultado" class="card hidden">
       <div class="card-header">
         <h3 id="demanda-titulo"></h3>
         <span class="badge" id="demanda-total"></span>
       </div>
+      <p class="muted">Frecuencia de cada habilidad entre las ofertas registradas para este puesto.</p>
       <div id="demanda-barras"></div>
       <button class="btn-secondary" id="btn-ver-relacionados-desde-demanda">Ver puestos relacionados ›</button>
     </div>
-    <p id="demanda-error" class="error-msg hidden"></p>
   </section>
 
   <!-- RELACIONADOS -->
   <section id="view-relacionados" class="view">
     <h2>¿Con qué puesto quieres comparar?</h2>
-    <div class="pill-group" id="puestos-relacionados"></div>
-    <button class="btn-primary" id="btn-ver-relacionados">Ver puestos relacionados ›</button>
+    <div class="puesto-grid" id="puestos-relacionados"></div>
+    <p id="relacionados-error" class="error-msg hidden"></p>
 
     <div id="relacionados-resultado" class="card hidden">
       <h3 id="relacionados-titulo"></h3>
+      <p class="muted">Toca un puesto para ver su demanda de habilidades.</p>
       <div id="relacionados-lista"></div>
     </div>
-    <p id="relacionados-error" class="error-msg hidden"></p>
   </section>
 
   <!-- PERFIL -->
   <section id="view-perfil" class="view">
     <div class="card">
       <h3>Mi perfil</h3>
-      <label>Carrera</label>
+      <label for="input-carrera">Carrera</label>
       <input type="text" id="input-carrera" placeholder="Ej. Ingeniería de Sistemas">
 
-      <label>Agregar habilidad</label>
-      <div class="inline-form">
-        <select id="select-habilidad"></select>
-        <select id="select-nivel">
-          <option value="dominado">Dominado</option>
-          <option value="basico">Básico</option>
-          <option value="no tiene">No tiene</option>
-        </select>
-        <button class="btn-secondary" id="btn-agregar-habilidad">Agregar</button>
+      <label>Mis habilidades</label>
+      <p class="muted">Toca una habilidad para marcar tu nivel. Cada toque lo cambia: básico, dominado, no tiene.</p>
+      <div class="leyenda">
+        <span class="nivel-tag nivel-basico">Básico</span>
+        <span class="nivel-tag nivel-dominado">Dominado</span>
+        <span class="nivel-tag nivel-no-tiene">No tiene</span>
       </div>
+      <div id="chips-habilidades" class="skill-grid"></div>
 
-      <div id="habilidades-pendientes"></div>
-
+      <p id="cambios-pendientes" class="muted"></p>
       <button class="btn-primary" id="btn-guardar-perfil">Guardar perfil</button>
       <p id="perfil-status" class="status-msg" role="status"></p>
-    </div>
-
-    <div class="card">
-      <h3>Habilidades ya registradas</h3>
-      <div id="habilidades-registradas">
-        <p class="muted">Todavía no registraste tu perfil.</p>
-      </div>
     </div>
   </section>
 
   <!-- ALINEACION -->
   <section id="view-alineacion" class="view">
     <h2>Compara tu perfil contra un puesto</h2>
-    <div class="pill-group" id="puestos-alineacion"></div>
-    <button class="btn-primary" id="btn-ver-alineacion">Ver mi alineación ›</button>
+    <div class="puesto-grid" id="puestos-alineacion"></div>
+    <p id="alineacion-error" class="error-msg hidden"></p>
 
     <div id="alineacion-resultado" class="card hidden">
       <h3 id="alineacion-titulo"></h3>
+
+      <div class="ring-wrap">
+        <div class="ring" id="ring"><span id="ring-num">0%</span></div>
+        <p id="ring-texto" class="muted"></p>
+      </div>
 
       <div class="alineacion-box ok">
         <strong>✓ Coincidencias</strong>
@@ -133,7 +136,6 @@
         <p class="muted">Aparecen en la mayoría de las ofertas analizadas para este puesto.</p>
       </div>
     </div>
-    <p id="alineacion-error" class="error-msg hidden"></p>
   </section>
 
 </main>

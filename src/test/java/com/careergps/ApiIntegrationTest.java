@@ -129,4 +129,42 @@ class ApiIntegrationTest {
         mockMvc.perform(get("/api/estudiantes/" + id))
                 .andExpect(status().isNotFound());
     }
+
+    @Test
+    void resumenDePuestosIndicaCuantosTienenDatosSuficientes() throws Exception {
+        mockMvc.perform(get("/api/puestos/resumen"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].nombre").value("Data Analyst"))
+                .andExpect(jsonPath("$[0].totalOfertas").value(10))
+                .andExpect(jsonPath("$[0].disponible").value(true))
+                .andExpect(jsonPath("$[2].totalOfertas").value(3))
+                .andExpect(jsonPath("$[2].disponible").value(false));
+    }
+
+    @Test
+    void puestosAmpliadosDelSeederTienenDemandaDisponible() throws Exception {
+        mockMvc.perform(get("/api/puestos/4/demanda"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.puestoNombre").value("BI Analyst"));
+    }
+
+    @Test
+    void registrarLaMismaHabilidadDosVecesActualizaElNivelSinDuplicar() throws Exception {
+        String respuesta = mockMvc.perform(post("/api/estudiantes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"carrera\":\"Contabilidad\"}"))
+                .andReturn().getResponse().getContentAsString();
+        String id = respuesta.replaceAll(".*\"id\":(\\d+).*", "$1");
+
+        for (String nivel : new String[] { "basico", "dominado" }) {
+            mockMvc.perform(post("/api/estudiantes/" + id + "/habilidades")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"habilidadId\":1,\"nivel\":\"" + nivel + "\"}"))
+                    .andExpect(status().isCreated());
+        }
+
+        mockMvc.perform(get("/api/estudiantes/" + id + "/habilidades"))
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nivel").value("dominado"));
+    }
 }

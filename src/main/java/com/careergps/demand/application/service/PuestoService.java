@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.careergps.demand.application.dto.DemandaDTO;
 import com.careergps.demand.application.dto.DemandaDTO.HabilidadFrecuencia;
 import com.careergps.demand.application.dto.PuestoRelacionadoDTO;
+import com.careergps.demand.application.dto.PuestoResumenDTO;
 import com.careergps.demand.domain.model.FrecuenciaHabilidad;
 import com.careergps.demand.domain.model.Puesto;
 import com.careergps.demand.domain.repository.OfertaHabilidadRepository;
@@ -40,6 +41,15 @@ public class PuestoService {
 
     public List<Puesto> listarPuestos() {
         return puestoRepository.findAll();
+    }
+
+    public List<PuestoResumenDTO> listarResumen() {
+        return puestoRepository.findAll().stream()
+                .map(p -> {
+                    long total = ofertaRepository.countByPuestoId(p.getId());
+                    return new PuestoResumenDTO(p.getId(), p.getNombre(), total, total >= MINIMO_OFERTAS);
+                })
+                .toList();
     }
 
     public DemandaDTO calcularDemanda(Long puestoId) {
