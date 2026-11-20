@@ -20,7 +20,15 @@
   </nav>
   <div class="topbar-right">
     <button class="btn-pill" id="btn-ingresar">Ingresar</button>
-    <div class="user-badge" title="Mi perfil">G</div>
+    <div class="user-wrap hidden" id="user-wrap">
+      <button class="user-badge" id="user-badge" aria-label="Mi cuenta">G</button>
+      <div class="user-menu hidden" id="user-menu">
+        <strong id="menu-nombre"></strong>
+        <span class="muted" id="menu-carrera"></span>
+        <span class="muted" id="menu-codigo"></span>
+        <button class="btn-secondary" id="btn-logout">Cerrar sesión</button>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -35,7 +43,8 @@
   <section id="view-landing" class="view hero">
     <h1>No te decimos dónde postular.<br><span class="accent-text">Te mostramos hacia dónde podrías prepararte.</span></h1>
     <p class="subtitle">CareerGPS analiza la demanda real de habilidades del mercado laboral y la compara con tu perfil, para que sepas qué reforzar antes de postular.</p>
-    <button class="btn-primary" id="btn-registrar-cta">Registrar mi perfil ›</button>
+    <button class="btn-primary" id="btn-registrar-cta">Crear mi perfil ›</button>
+    <p><button class="link-btn" id="btn-tengo-cuenta">Ya tengo un perfil · Ingresar</button></p>
 
     <div class="feature-cards">
       <div class="feature-card" data-go="demanda" tabindex="0" role="button">
@@ -90,9 +99,31 @@
   </section>
 
   <!-- PERFIL -->
+  <section id="view-login" class="view">
+    <div class="card login-card">
+      <h3>Ingresar</h3>
+      <p class="muted">Escribe el código que recibiste al crear tu perfil.</p>
+      <label for="input-codigo">Código de perfil</label>
+      <input type="text" inputmode="numeric" id="input-codigo" placeholder="Ej. 12">
+      <button class="btn-primary" id="btn-login">Ingresar ›</button>
+      <p id="login-error" class="error-msg hidden"></p>
+      <button class="link-btn" id="btn-ir-crear">No tengo perfil · Crear uno</button>
+    </div>
+  </section>
+
   <section id="view-perfil" class="view">
+    <div class="pasos" id="pasos">
+      <div class="paso" data-paso="1"><span>1</span> Tus datos</div>
+      <div class="paso-linea"></div>
+      <div class="paso" data-paso="2"><span>2</span> Tus habilidades</div>
+      <div class="paso-linea"></div>
+      <div class="paso" data-paso="3"><span>3</span> ¡Listo!</div>
+    </div>
     <div class="card">
-      <h3>Mi perfil</h3>
+      <h3 id="perfil-titulo">Crea tu perfil</h3>
+      <p class="muted" id="perfil-subtitulo">Lo necesitamos para comparar tus habilidades con lo que pide el mercado.</p>
+      <label for="input-nombre">Nombre</label>
+      <input type="text" id="input-nombre" placeholder="Ej. Gabriela" maxlength="40">
       <label for="input-carrera">Carrera</label>
       <input type="text" id="input-carrera" placeholder="Ej. Ingeniería de Sistemas">
 
@@ -139,6 +170,17 @@
   </section>
 
 </main>
+
+<div id="modal-bienvenida" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-emoji">🎉</div>
+    <h3 id="modal-titulo"></h3>
+    <p>Tu código de perfil es</p>
+    <div class="codigo" id="modal-codigo"></div>
+    <p class="muted">Guárdalo: con él puedes volver a ingresar cuando quieras.</p>
+    <button class="btn-primary" id="btn-modal-ok">Explorar el mercado ›</button>
+  </div>
+</div>
 
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 

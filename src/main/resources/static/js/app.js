@@ -16,9 +16,16 @@ const state = {
   puestoRelacionadosId: null,
   puestoAlineacionId: null,
   estudianteId: null,
+  nombre: null,
+  carrera: null,
 };
 
-try { state.estudianteId = localStorage.getItem("careergps_estudiante_id"); } catch (e) { }
+const VISTAS_LIBRES = ["landing", "perfil", "login"];
+
+try {
+  state.estudianteId = localStorage.getItem("careergps_estudiante_id");
+  state.nombre = localStorage.getItem("careergps_nombre");
+} catch (e) { }
 
 const $ = (id) => document.getElementById(id);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -92,9 +99,88 @@ function mostrarVista(nombre) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+function sesionActiva() {
+  return !!state.estudianteId;
+}
+
 function irAlApp(vista) {
-  mostrarVista(vista || "demanda");
+  vista = vista || "demanda";
+  if (!sesionActiva() && !VISTAS_LIBRES.includes(vista)) {
+    toast("Primero crea tu perfil para continuar", "error");
+    vista = "perfil";
+  }
+  mostrarVista(vista);
   if (vista === "perfil") cargarMiPerfil();
+}
+
+function actualizarPasos() {
+  const datos = $("input-nombre").value.trim() !== "" && $("input-carrera").value.trim() !== "";
+  const habilidades = Object.keys(state.nivelesUI).length > 0;
+  const completos = [datos, habilidades, datos && habilidades];
+  document.querySelectorAll(".paso").forEach((p, i) => {
+    p.classList.toggle("hecho", completos[i]);
+    p.classList.toggle("actual", !completos[i] && (i === 0 || completos[i - 1]));
+  });
+  const btn = $("btn-guardar-perfil");
+  btn.disabled = !sesionActiva() && !(datos && habilidades);
+}
+
+function actualizarSesionUI() {
+  const on = sesionActiva();
+  document.querySelectorAll(".tab-btn").forEach((b) => {
+    b.classList.toggle("locked", !on && !VISTAS_LIBRES.includes(b.dataset.view));
+  });
+  document.querySelectorAll(".feature-card").forEach((c) => c.classList.toggle("locked", !on));
+  $("btn-ingresar").classList.toggle("hidden", on);
+  $("user-wrap").classList.toggle("hidden", !on);
+  $("btn-tengo-cuenta").classList.toggle("hidden", on);
+  $("btn-registrar-cta").textContent = on ? "Explorar el mercado ›" : "Crear mi perfil ›";
+  $("pasos").classList.toggle("hidden", on);
+  $("perfil-titulo").textContent = on ? "Mi perfil" : "Crea tu perfil";
+  $("perfil-subtitulo").textContent = on
+    ? "Actualiza tus datos y habilidades cuando quieras."
+    : "Lo necesitamos para comparar tus habilidades con lo que pide el mercado.";
+  $("btn-guardar-perfil").textContent = on ? "Guardar cambios" : "Crear mi perfil y entrar ›";
+  $("user-badge").textContent = state.nombre ? state.nombre.trim()[0].toUpperCase() : "👤";
+  $("menu-nombre").textContent = state.nombre || "Mi cuenta";
+  $("menu-carrera").textContent = state.carrera || "";
+  $("menu-codigo").textContent = on ? "Código: " + state.estudianteId : "";
+  actualizarPasos();
+}
+
+function cerrarSesion() {
+  olvidarEstudiante();
+  $("input-nombre").value = "";
+  $("input-carrera").value = "";
+  $("user-menu").classList.add("hidden");
+  renderChips();
+  toast("Sesión cerrada");
+  mostrarVista("landing");
+}
+
+async function ingresarConCodigo() {
+  const errorEl = $("login-error");
+  errorEl.classList.add("hidden");
+  const codigo = $("input-codigo").value.trim();
+  if (!/^\d+$/.test(codigo)) return mostrarError("login-error", "Escribe tu código, que es un número.");
+  try {
+    const est = await fetchJson(API + "/estudiantes/" + codigo);
+    state.estudianteId = String(est.id);
+    state.carrera = est.carrera;
+    try { localStorage.setItem("careergps_estudiante_id", est.id); } catch (e) { }
+    $("input-codigo").value = "";
+    await cargarMiPerfil();
+    toast("¡Qué bueno verte de nuevo!", "ok");
+    mostrarVista("demanda");
+  } catch (e) {
+    mostrarError("login-error", e.status === 404 ? "No encontramos un perfil con ese código." : e.message);
+  }
+}
+
+function mostrarBienvenida() {
+  $("modal-titulo").textContent = "¡Listo, " + (state.nombre || "bienvenido/a") + "!";
+  $("modal-codigo").textContent = state.estudianteId;
+  $("modal-bienvenida").classList.remove("hidden");
 }
 
 function mostrarError(id, mensaje) {
@@ -263,20 +349,28 @@ function renderChips() {
   });
   const n = cambiosPendientes().length;
   $("cambios-pendientes").textContent = n ? n + (n === 1 ? " cambio sin guardar" : " cambios sin guardar") : "";
+  actualizarPasos();
 }
 
 function olvidarEstudiante() {
   state.estudianteId = null;
+  state.nombre = null;
+  state.carrera = null;
   state.nivelesGuardados = {};
   state.nivelesUI = {};
-  try { localStorage.removeItem("careergps_estudiante_id"); } catch (e) { }
+  try {
+    localStorage.removeItem("careergps_estudiante_id");
+    localStorage.removeItem("careergps_nombre");
+  } catch (e) { }
+  actualizarSesionUI();
 }
 
 async function cargarMiPerfil() {
-  if (!state.estudianteId) { renderChips(); return; }
+  if (!state.estudianteId) { renderChips(); actualizarSesionUI(); return; }
   try {
     const est = await fetchJson(API + "/estudiantes/" + state.estudianteId);
-    if (est && est.carrera) $("input-carrera").value = est.carrera;
+    if (est && est.carrera) { $("input-carrera").value = est.carrera; state.carrera = est.carrera; }
+    if (state.nombre) $("input-nombre").value = state.nombre;
     const lista = await fetchJson(API + "/estudiantes/" + state.estudianteId + "/habilidades");
     state.nivelesGuardados = {};
     lista.forEach((h) => { state.nivelesGuardados[h.habilidadId] = h.nivel; });
@@ -285,17 +379,20 @@ async function cargarMiPerfil() {
     if (e.status === 404) olvidarEstudiante();
   }
   renderChips();
+  actualizarSesionUI();
 }
 
 async function guardarPerfil() {
   const btn = $("btn-guardar-perfil");
   const statusEl = $("perfil-status");
   const carrera = $("input-carrera").value.trim();
+  const nombre = $("input-nombre").value.trim();
+  const eraNuevo = !sesionActiva();
   statusEl.className = "status-msg";
   statusEl.textContent = "";
-  if (!carrera) {
+  if (!nombre || !carrera) {
     statusEl.className = "error-msg";
-    statusEl.textContent = "Escribe tu carrera para guardar el perfil.";
+    statusEl.textContent = "Escribe tu nombre y tu carrera para continuar.";
     return;
   }
   btn.disabled = true;
@@ -329,14 +426,19 @@ async function guardarPerfil() {
       });
     }
     state.nivelesGuardados = Object.assign({}, state.nivelesUI);
+    state.nombre = nombre;
+    state.carrera = carrera;
+    try { localStorage.setItem("careergps_nombre", nombre); } catch (e) { }
+    actualizarSesionUI();
     renderChips();
-    toast("Perfil guardado ✓", "ok");
+    if (eraNuevo) mostrarBienvenida();
+    else toast("Perfil guardado ✓", "ok");
   } catch (e) {
     statusEl.className = "error-msg";
     statusEl.textContent = e.message;
   } finally {
     btn.disabled = false;
-    btn.textContent = "Guardar perfil";
+    actualizarSesionUI();
   }
 }
 
@@ -383,20 +485,37 @@ document.querySelectorAll("[data-go]").forEach((card) => {
   card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); ir(); } });
 });
 $("logo").addEventListener("click", () => mostrarVista("landing"));
-$("btn-ingresar").addEventListener("click", () => irAlApp("demanda"));
-$("btn-registrar-cta").addEventListener("click", () => irAlApp("perfil"));
+$("btn-ingresar").addEventListener("click", () => irAlApp("login"));
+$("btn-tengo-cuenta").addEventListener("click", () => irAlApp("login"));
+$("btn-ir-crear").addEventListener("click", () => irAlApp("perfil"));
+$("btn-registrar-cta").addEventListener("click", () => irAlApp(sesionActiva() ? "demanda" : "perfil"));
+$("btn-login").addEventListener("click", ingresarConCodigo);
+$("input-codigo").addEventListener("keydown", (e) => { if (e.key === "Enter") ingresarConCodigo(); });
+$("input-nombre").addEventListener("input", actualizarPasos);
+$("input-carrera").addEventListener("input", actualizarPasos);
+$("btn-logout").addEventListener("click", cerrarSesion);
+$("user-badge").addEventListener("click", (e) => { e.stopPropagation(); $("user-menu").classList.toggle("hidden"); });
+document.addEventListener("click", () => $("user-menu").classList.add("hidden"));
+$("user-menu").addEventListener("click", (e) => e.stopPropagation());
+$("btn-modal-ok").addEventListener("click", () => {
+  $("modal-bienvenida").classList.add("hidden");
+  mostrarVista("demanda");
+});
 $("btn-ver-relacionados-desde-demanda").addEventListener("click", () => verRelacionados(state.puestoDemandaId));
 $("btn-guardar-perfil").addEventListener("click", guardarPerfil);
 
 (async function init() {
   mostrarVista("landing");
+  actualizarSesionUI();
   esqueleto();
   try {
     state.puestos = await conReintentos(API + "/puestos/resumen");
     state.habilidades = await conReintentos(API + "/habilidades");
     refrescarPuestos();
     renderStats();
+    const tenia = sesionActiva();
     await cargarMiPerfil();
+    if (tenia && sesionActiva()) mostrarVista("demanda");
   } catch (e) {
     console.error("Error inicializando CareerGPS:", e);
     toast(e.message, "error");
