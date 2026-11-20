@@ -21,6 +21,13 @@
   </nav>
   <div class="topbar-right">
     <button class="btn-pill" id="btn-ingresar">Ingresar</button>
+    <div class="alert-wrap hidden" id="alert-wrap">
+      <button class="bell" id="btn-alertas" aria-label="Alertas">🔔<span class="bell-badge hidden" id="bell-badge">0</span></button>
+      <div class="alert-menu hidden" id="alert-menu">
+        <div class="alert-head"><strong>Alertas</strong><button class="link-btn pequeno" id="btn-limpiar-alertas">Borrar todas</button></div>
+        <div id="alert-lista"></div>
+      </div>
+    </div>
     <div class="user-wrap hidden" id="user-wrap">
       <button class="user-badge" id="user-badge" aria-label="Mi cuenta">G</button>
       <div class="user-menu hidden" id="user-menu">

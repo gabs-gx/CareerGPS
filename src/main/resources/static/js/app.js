@@ -190,6 +190,103 @@ function coincidenciaCon(puestoId) {
   return { pct: habilidades.length ? Math.round(coincide.length * 100 / habilidades.length) : 0, coincide, faltan };
 }
 
+/* ---------- alertas ---------- */
+
+const MAX_ALERTAS = 30;
+const ICONOS_ALERTA = { sube: "📈", baja: "📉", mercado: "🆕", meta: "🎯", info: "👋" };
+
+const claveAlertas = () => "careergps_alertas_" + state.estudianteId;
+const claveSnap = () => "careergps_snap_" + state.estudianteId;
+
+function leerLS(clave, defecto) {
+  try {
+    const valor = JSON.parse(localStorage.getItem(clave) || "null");
+    return valor === null ? defecto : valor;
+  } catch (e) { return defecto; }
+}
+
+function escribirLS(clave, valor) {
+  try { localStorage.setItem(clave, JSON.stringify(valor)); } catch (e) { }
+}
+
+function tiempoRelativo(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return "hace un momento";
+  const m = Math.floor(s / 60);
+  if (m < 60) return "hace " + m + " min";
+  const h = Math.floor(m / 60);
+  return h < 24 ? "hace " + h + " h" : "hace " + Math.floor(h / 24) + " d";
+}
+
+function renderAlertas() {
+  const lista = sesionActiva() ? leerLS(claveAlertas(), []) : [];
+  const sinLeer = lista.filter((a) => !a.leida).length;
+  $("bell-badge").textContent = sinLeer;
+  $("bell-badge").classList.toggle("hidden", sinLeer === 0);
+  const cont = $("alert-lista");
+  cont.innerHTML = lista.length ? "" : '<p class="muted alert-vacia">Aún no tienes alertas.</p>';
+  lista.forEach((a) => {
+    const item = document.createElement("div");
+    item.className = "alert-item" + (a.leida ? "" : " nueva");
+    item.innerHTML = '<span class="alert-ico">' + (ICONOS_ALERTA[a.tipo] || "🔔") + '</span><div><p>' + esc(a.texto) +
+      '</p><small>' + tiempoRelativo(a.fecha) + '</small></div>';
+    cont.appendChild(item);
+  });
+}
+
+function evaluarAlertas() {
+  if (!sesionActiva() || !Object.keys(state.demandas).length) return;
+  const previo = leerLS(claveSnap(), null);
+  const actual = {};
+  const nuevas = [];
+
+  const subidas = [];
+  const bajadas = [];
+  state.puestos.filter((p) => state.demandas[p.id]).forEach((p) => {
+    const c = coincidenciaCon(p.id);
+    const demandadas = state.demandas[p.id].habilidades.map((h) => h.nombre);
+    actual[p.id] = { pct: c.pct, demandadas };
+    const antes = previo && previo[p.id];
+    if (!antes) return;
+
+    const nuevasHab = demandadas.filter((n) => !antes.demandadas.includes(n));
+    const cambio = { p, antes: antes.pct, ahora: c.pct, nuevasHab };
+    if (c.pct > antes.pct) subidas.push(cambio);
+    else if (c.pct < antes.pct) bajadas.push(cambio);
+    if (nuevasHab.length && c.pct >= antes.pct) {
+      nuevas.push(["mercado", p.nombre + " ahora también pide " + nuevasHab.join(", ") + "."]);
+    }
+    [50, 80].forEach((meta) => {
+      if (antes.pct < meta && c.pct >= meta) {
+        nuevas.push(["meta", "¡Tu perfil ya coincide con el " + meta + "% o más de lo que piden las ofertas de " + p.nombre + "!"]);
+      }
+    });
+  });
+
+  const detalle = (x) => x.p.nombre + " (" + x.antes + "% → " + x.ahora + "%)";
+  const resumir = (lista, tipo, verbo) => {
+    if (!lista.length) return;
+    if (lista.length <= 2) {
+      lista.forEach((x) => nuevas.push([tipo, "Tu alineación con " + x.p.nombre + " " + verbo + " de " + x.antes + "% a " + x.ahora + "%." +
+        (tipo === "baja" && x.nuevasHab.length ? " Ahora también piden " + x.nuevasHab.join(", ") + "." : "")]));
+      return;
+    }
+    const orden = lista.slice().sort((a, b) => Math.abs(b.ahora - b.antes) - Math.abs(a.ahora - a.antes));
+    nuevas.push([tipo, "Tu alineación " + verbo + " en " + lista.length + " puestos. Lo más notable: " + detalle(orden[0]) + " y " + detalle(orden[1]) + "."]);
+  };
+  resumir(subidas, "sube", "subió");
+  resumir(bajadas, "baja", "bajó");
+
+  if (!previo) nuevas.push(["info", "Te avisaremos aquí cuando cambie tu alineación o lo que pide el mercado."]);
+  escribirLS(claveSnap(), actual);
+
+  const guardadas = leerLS(claveAlertas(), []);
+  nuevas.forEach(([tipo, texto]) => guardadas.unshift({ tipo, texto, fecha: Date.now(), leida: false }));
+  escribirLS(claveAlertas(), guardadas.slice(0, MAX_ALERTAS));
+  renderAlertas();
+  if (nuevas.length) toast("🔔 Tienes " + nuevas.length + (nuevas.length === 1 ? " alerta nueva" : " alertas nuevas"));
+}
+
 /* ---------- sesión ---------- */
 
 function actualizarSesionUI() {
@@ -200,6 +297,8 @@ function actualizarSesionUI() {
   document.querySelectorAll(".feature-card").forEach((c) => c.classList.toggle("locked", !on));
   $("btn-ingresar").classList.toggle("hidden", on);
   $("user-wrap").classList.toggle("hidden", !on);
+  $("alert-wrap").classList.toggle("hidden", !on);
+  renderAlertas();
   $("btn-tengo-cuenta").classList.toggle("hidden", on);
   $("btn-registrar-cta").textContent = on ? "Ver mis coincidencias ›" : "Crear mi perfil ›";
   $("perfil-titulo").textContent = on ? "Mi perfil" : "Crea tu perfil";
@@ -255,6 +354,8 @@ async function ingresar() {
     aplicarSesion(sesion);
     $("input-login-password").value = "";
     await cargarMiPerfil();
+    if (!Object.keys(state.demandas).length) await cargarDemandas();
+    evaluarAlertas();
     toast("¡Qué bueno verte de nuevo!", "ok");
     irAlApp("inicio");
   } catch (e) {
@@ -474,6 +575,7 @@ async function guardarPerfil() {
     state.nivelesGuardados = Object.assign({}, state.nivelesUI);
     actualizarSesionUI();
     renderChips();
+    evaluarAlertas();
     if (eraNuevo) mostrarBienvenida();
     else { toast("Perfil guardado ✓", "ok"); irAlApp("inicio"); }
   } catch (e) {
@@ -743,9 +845,32 @@ document.querySelectorAll("button.paso").forEach((p) => {
 $("buscar-habilidad").addEventListener("input", (e) => { state.busqueda = e.target.value; renderCatalogo(); });
 $("btn-inicio-habilidades").addEventListener("click", () => { irAlApp("perfil"); if (datosCompletos()) irPaso(2); });
 $("btn-logout").addEventListener("click", cerrarSesion);
-$("user-badge").addEventListener("click", (e) => { e.stopPropagation(); $("user-menu").classList.toggle("hidden"); });
-document.addEventListener("click", () => $("user-menu").classList.add("hidden"));
+$("user-badge").addEventListener("click", (e) => {
+  e.stopPropagation();
+  $("alert-menu").classList.add("hidden");
+  $("user-menu").classList.toggle("hidden");
+});
+$("btn-alertas").addEventListener("click", (e) => {
+  e.stopPropagation();
+  $("user-menu").classList.add("hidden");
+  const menu = $("alert-menu");
+  const abrir = menu.classList.contains("hidden");
+  menu.classList.toggle("hidden");
+  if (abrir) {
+    renderAlertas();
+    const lista = leerLS(claveAlertas(), []);
+    lista.forEach((a) => { a.leida = true; });
+    escribirLS(claveAlertas(), lista);
+    $("bell-badge").classList.add("hidden");
+  }
+});
+$("btn-limpiar-alertas").addEventListener("click", () => { escribirLS(claveAlertas(), []); renderAlertas(); });
+document.addEventListener("click", () => {
+  $("user-menu").classList.add("hidden");
+  $("alert-menu").classList.add("hidden");
+});
 $("user-menu").addEventListener("click", (e) => e.stopPropagation());
+$("alert-menu").addEventListener("click", (e) => e.stopPropagation());
 $("btn-modal-ok").addEventListener("click", () => {
   $("modal-bienvenida").classList.add("hidden");
   irAlApp("inicio");
@@ -766,6 +891,7 @@ $("btn-guardar-perfil").addEventListener("click", guardarPerfil);
     await cargarMiPerfil();
     if (tenia && sesionActiva()) irAlApp("inicio");
     cargarDemandas().then(() => {
+      evaluarAlertas();
       renderChips();
       if ($("view-inicio").classList.contains("active")) renderInicio();
     });

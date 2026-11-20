@@ -526,3 +526,25 @@ button.paso { background: none; border: none; font: inherit; cursor: pointer; }
 .aprender-card p { margin: 0; font-size: 0.8rem; color: var(--muted); }
 
 @media (max-width: 760px) { .skill-layout { grid-template-columns: 1fr; } }
+
+.alert-wrap { position: relative; }
+.bell { background: rgba(255, 255, 255, 0.15); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 1.05rem; position: relative; transition: transform 0.15s ease; }
+.bell:hover { transform: scale(1.08); }
+.bell-badge {
+  position: absolute; top: -4px; right: -4px; background: #e5484d; color: white; font-size: 0.65rem; font-weight: 700;
+  min-width: 17px; height: 17px; border-radius: 999px; display: grid; place-items: center; padding: 0 4px;
+}
+.alert-menu {
+  position: absolute; right: -50px; top: 46px; width: 330px; max-width: calc(100vw - 32px); max-height: 420px; overflow-y: auto;
+  background: white; color: var(--text-dark); border: 1px solid var(--border); border-radius: 14px; z-index: 20;
+  box-shadow: 0 14px 34px rgba(29, 27, 46, 0.18); animation: aparecer 0.15s ease;
+}
+.alert-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: white; }
+.alert-head .link-btn { margin: 0; }
+.alert-item { display: flex; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.alert-item.nueva { background: var(--indigo-tint); }
+.alert-item p { margin: 0 0 2px; font-size: 0.85rem; line-height: 1.35; }
+.alert-item small { color: var(--muted); font-size: 0.72rem; }
+.alert-ico { font-size: 1.1rem; }
+.alert-vacia { padding: 18px 16px; margin: 0; }
+@media (max-width: 600px) { .alert-menu { right: -90px; } }
