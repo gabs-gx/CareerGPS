@@ -11,6 +11,7 @@ import com.careergps.profiles.application.dto.EstudianteHabilidadRequestDTO;
 import com.careergps.profiles.application.dto.EstudianteRequestDTO;
 import com.careergps.profiles.domain.model.Estudiante;
 import com.careergps.profiles.domain.model.EstudianteHabilidad;
+import com.careergps.profiles.domain.repository.AlertaRepository;
 import com.careergps.profiles.domain.repository.EstudianteHabilidadRepository;
 import com.careergps.profiles.domain.repository.EstudianteRepository;
 import com.careergps.shared.domain.exception.RecursoNoEncontradoException;
@@ -21,14 +22,17 @@ public class EstudianteService {
     private final EstudianteRepository estudianteRepository;
     private final HabilidadRepository habilidadRepository;
     private final EstudianteHabilidadRepository estudianteHabilidadRepository;
+    private final AlertaRepository alertaRepository;
 
     public EstudianteService(
             EstudianteRepository estudianteRepository,
             HabilidadRepository habilidadRepository,
-            EstudianteHabilidadRepository estudianteHabilidadRepository) {
+            EstudianteHabilidadRepository estudianteHabilidadRepository,
+            AlertaRepository alertaRepository) {
         this.estudianteRepository = estudianteRepository;
         this.habilidadRepository = habilidadRepository;
         this.estudianteHabilidadRepository = estudianteHabilidadRepository;
+        this.alertaRepository = alertaRepository;
     }
 
     public Estudiante registrarPerfil(EstudianteRequestDTO dto) {
@@ -50,6 +54,7 @@ public class EstudianteService {
     public void eliminarPerfil(Long id) {
         obtenerPerfil(id);
         estudianteHabilidadRepository.deleteByEstudianteId(id);
+        alertaRepository.deleteByEstudianteId(id);
         estudianteRepository.deleteById(id);
     }
 

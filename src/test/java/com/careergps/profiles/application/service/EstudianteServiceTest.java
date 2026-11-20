@@ -19,6 +19,7 @@ import com.careergps.profiles.application.dto.EstudianteHabilidadRequestDTO;
 import com.careergps.profiles.application.dto.EstudianteRequestDTO;
 import com.careergps.profiles.domain.model.Estudiante;
 import com.careergps.profiles.domain.model.EstudianteHabilidad;
+import com.careergps.profiles.domain.repository.AlertaRepository;
 import com.careergps.profiles.domain.repository.EstudianteHabilidadRepository;
 import com.careergps.profiles.domain.repository.EstudianteRepository;
 
@@ -31,6 +32,8 @@ class EstudianteServiceTest {
     private HabilidadRepository habilidadRepository;
     @Mock
     private EstudianteHabilidadRepository estudianteHabilidadRepository;
+    @Mock
+    private AlertaRepository alertaRepository;
 
     @InjectMocks
     private EstudianteService estudianteService;

@@ -31,6 +31,10 @@ public class Estudiante {
     @Column(name = "password_hash")
     private String passwordHash;
 
+    @JsonIgnore
+    @Column(name = "snapshot_alineacion", length = 4000)
+    private String snapshotAlineacion;
+
     public Estudiante() {
     }
 
@@ -76,6 +80,14 @@ public class Estudiante {
 
     public void setCorreo(String correo) {
         this.correo = correo;
+    }
+
+    public String getSnapshotAlineacion() {
+        return snapshotAlineacion;
+    }
+
+    public void setSnapshotAlineacion(String snapshotAlineacion) {
+        this.snapshotAlineacion = snapshotAlineacion;
     }
 
     public String getPasswordHash() {
