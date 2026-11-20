@@ -548,3 +548,11 @@ button.paso { background: none; border: none; font: inherit; cursor: pointer; }
 .alert-ico { font-size: 1.1rem; }
 .alert-vacia { padding: 18px 16px; margin: 0; }
 @media (max-width: 600px) { .alert-menu { right: -90px; } }
+
+@media (max-width: 600px) {
+  .alert-menu { position: fixed; left: 16px; right: 16px; top: 64px; width: auto; max-width: none; }
+  .pasos { gap: 6px; flex-wrap: nowrap; }
+  .paso { font-size: 0.72rem; gap: 5px; }
+  .paso span { width: 22px; height: 22px; font-size: 0.7rem; }
+  .paso-linea { width: 12px; }
+}
