@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.careergps.demand.domain.model.Habilidad;
 import com.careergps.demand.domain.model.Oferta;
@@ -49,6 +50,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     @Override
+    @Transactional
     public void run(String... args) {
         boolean primeraVez = puestoRepository.findAll().isEmpty();
 
@@ -59,45 +61,34 @@ public class DataSeeder implements CommandLineRunner {
                     .orElseGet(() -> habilidadRepository.save(new Habilidad(nombre))));
         }
 
-        if (primeraVez) {
-            Puesto dataAnalyst = puestoRepository.save(new Puesto("Data Analyst"));
-            Puesto dataScientist = puestoRepository.save(new Puesto("Data Scientist"));
-            Puesto dataEngineer = puestoRepository.save(new Puesto("Data Engineer"));
+        cargarPuesto("DA", "Data Analyst", habilidades, List.of(
+                List.of("SQL", "Excel", "Power BI", "Python"),
+                List.of("SQL", "Excel", "Power BI", "Python"),
+                List.of("SQL", "Excel", "Power BI", "Python"),
+                List.of("SQL", "Excel", "Power BI", "Python"),
+                List.of("SQL", "Excel", "Power BI", "Python"),
+                List.of("SQL", "Excel", "Power BI"),
+                List.of("SQL", "Excel", "Power BI"),
+                List.of("SQL", "Excel"),
+                List.of("SQL"),
+                List.of("Tableau")));
 
-            cargarOfertas("DA", dataAnalyst, habilidades, List.of(
-                    List.of("SQL", "Excel", "Power BI", "Python"),
-                    List.of("SQL", "Excel", "Power BI", "Python"),
-                    List.of("SQL", "Excel", "Power BI", "Python"),
-                    List.of("SQL", "Excel", "Power BI", "Python"),
-                    List.of("SQL", "Excel", "Power BI", "Python"),
-                    List.of("SQL", "Excel", "Power BI"),
-                    List.of("SQL", "Excel", "Power BI"),
-                    List.of("SQL", "Excel"),
-                    List.of("SQL"),
-                    List.of("Tableau")));
+        cargarPuesto("DS", "Data Scientist", habilidades, List.of(
+                List.of("Python", "SQL", "Estadistica", "Machine Learning"),
+                List.of("Python", "SQL", "Estadistica", "Machine Learning"),
+                List.of("Python", "Estadistica", "Machine Learning", "Git"),
+                List.of("Python", "SQL", "Machine Learning"),
+                List.of("Python", "Estadistica", "Machine Learning"),
+                List.of("Python", "SQL", "Estadistica"),
+                List.of("Python", "Machine Learning", "Git"),
+                List.of("Python", "SQL", "Machine Learning", "AWS")));
 
-            cargarOfertas("DS", dataScientist, habilidades, List.of(
-                    List.of("Python", "SQL", "Estadistica", "Machine Learning"),
-                    List.of("Python", "SQL", "Estadistica", "Machine Learning"),
-                    List.of("Python", "Estadistica", "Machine Learning", "Git"),
-                    List.of("Python", "SQL", "Machine Learning"),
-                    List.of("Python", "Estadistica", "Machine Learning"),
-                    List.of("Python", "SQL", "Estadistica"),
-                    List.of("Python", "Machine Learning", "Git"),
-                    List.of("Python", "SQL", "Machine Learning", "AWS")));
+        cargarPuesto("DE", "Data Engineer", habilidades, List.of(
+                List.of("Python", "SQL", "Docker"),
+                List.of("Python", "SQL", "Git", "Spark"),
+                List.of("Python", "Docker", "Git")));
 
-            cargarOfertas("DE", dataEngineer, habilidades, List.of(
-                    List.of("Python", "SQL", "Docker"),
-                    List.of("Python", "SQL", "Git", "Spark"),
-                    List.of("Python", "Docker", "Git")));
-
-            Estudiante estudiante = estudianteRepository.save(new Estudiante("Ingenieria de Sistemas"));
-            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("SQL").getId(), "dominado"));
-            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Excel").getId(), "basico"));
-            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Python").getId(), "no tiene"));
-        }
-
-        agregarPuesto("BI", "BI Analyst", habilidades, List.of(
+        cargarPuesto("BI", "BI Analyst", habilidades, List.of(
                 List.of("SQL", "Power BI", "Excel", "Tableau"),
                 List.of("SQL", "Power BI", "Excel"),
                 List.of("Power BI", "Excel", "Estadistica"),
@@ -107,7 +98,7 @@ public class DataSeeder implements CommandLineRunner {
                 List.of("SQL", "Power BI"),
                 List.of("SQL", "Excel", "Power BI", "Estadistica")));
 
-        agregarPuesto("BE", "Backend Developer", habilidades, List.of(
+        cargarPuesto("BE", "Backend Developer", habilidades, List.of(
                 List.of("Java", "Spring Boot", "SQL", "Git"),
                 List.of("Java", "Spring Boot", "SQL", "Docker"),
                 List.of("Java", "Spring Boot", "Git", "AWS"),
@@ -118,7 +109,7 @@ public class DataSeeder implements CommandLineRunner {
                 List.of("Java", "Spring Boot", "Git"),
                 List.of("Java", "SQL", "AWS", "Docker")));
 
-        agregarPuesto("FE", "Frontend Developer", habilidades, List.of(
+        cargarPuesto("FE", "Frontend Developer", habilidades, List.of(
                 List.of("JavaScript", "HTML/CSS", "React", "Git"),
                 List.of("JavaScript", "HTML/CSS", "React"),
                 List.of("JavaScript", "HTML/CSS", "Figma", "Git"),
@@ -128,7 +119,7 @@ public class DataSeeder implements CommandLineRunner {
                 List.of("JavaScript", "React", "HTML/CSS", "CI/CD"),
                 List.of("JavaScript", "HTML/CSS", "React", "Git")));
 
-        agregarPuesto("DO", "DevOps Engineer", habilidades, List.of(
+        cargarPuesto("DO", "DevOps Engineer", habilidades, List.of(
                 List.of("Docker", "Kubernetes", "Linux", "AWS"),
                 List.of("Docker", "CI/CD", "Linux", "Git"),
                 List.of("Docker", "Kubernetes", "CI/CD", "AWS"),
@@ -137,20 +128,36 @@ public class DataSeeder implements CommandLineRunner {
                 List.of("AWS", "Docker", "CI/CD", "Git"),
                 List.of("Linux", "Kubernetes", "AWS")));
 
-        agregarPuesto("QA", "QA Analyst", habilidades, List.of(
+        cargarPuesto("QA", "QA Analyst", habilidades, List.of(
                 List.of("Selenium", "SQL", "Git"),
                 List.of("Selenium", "Python", "Git"),
                 List.of("SQL", "Selenium", "CI/CD"),
                 List.of("Selenium", "Git", "Java"),
                 List.of("SQL", "Selenium", "Excel"),
                 List.of("Selenium", "Python", "SQL")));
+
+        if (primeraVez) {
+            Estudiante estudiante = estudianteRepository.save(new Estudiante("Ingenieria de Sistemas"));
+            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("SQL").getId(), "dominado"));
+            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Excel").getId(), "basico"));
+            estudianteHabilidadRepository.save(new EstudianteHabilidad(estudiante.getId(), habilidades.get("Python").getId(), "no tiene"));
+        }
     }
 
-    private void agregarPuesto(String prefijo, String nombre, Map<String, Habilidad> habilidades, List<List<String>> habilidadesPorOferta) {
-        boolean existe = puestoRepository.findAll().stream().anyMatch(p -> p.getNombre().equalsIgnoreCase(nombre));
-        if (!existe) {
-            cargarOfertas(prefijo, puestoRepository.save(new Puesto(nombre)), habilidades, habilidadesPorOferta);
+    private void cargarPuesto(String prefijo, String nombre, Map<String, Habilidad> habilidades, List<List<String>> habilidadesPorOferta) {
+        Puesto puesto = puestoRepository.findAll().stream()
+                .filter(p -> p.getNombre().equalsIgnoreCase(nombre))
+                .findFirst()
+                .orElseGet(() -> puestoRepository.save(new Puesto(nombre)));
+
+        if (ofertaRepository.countByPuestoId(puesto.getId()) >= habilidadesPorOferta.size()) {
+            return;
         }
+        for (Oferta incompleta : ofertaRepository.findByPuestoId(puesto.getId())) {
+            ofertaHabilidadRepository.deleteByOfertaId(incompleta.getId());
+            ofertaRepository.deleteById(incompleta.getId());
+        }
+        cargarOfertas(prefijo, puesto, habilidades, habilidadesPorOferta);
     }
 
     private void cargarOfertas(String prefijo, Puesto puesto, Map<String, Habilidad> habilidades, List<List<String>> habilidadesPorOferta) {
