@@ -161,7 +161,6 @@ function irAlApp(vista) {
   if (vista === "inicio") renderInicio();
 }
 
-/* ---------- datos del mercado ---------- */
 
 function categoriaDe(nombre) {
   for (const [cat, lista] of Object.entries(CATEGORIAS)) if (lista.includes(nombre)) return cat;
@@ -192,7 +191,6 @@ function coincidenciaCon(puestoId) {
   return { pct: habilidades.length ? Math.round(coincide.length * 100 / habilidades.length) : 0, coincide, faltan };
 }
 
-/* ---------- alertas ---------- */
 
 const ICONOS_ALERTA = { sube: "📈", baja: "📉", mercado: "🆕", meta: "🎯", info: "👋" };
 let evaluandoAlertas = false;
@@ -299,7 +297,6 @@ async function evaluarAlertas() {
   }
 }
 
-/* ---------- sesión ---------- */
 
 function actualizarSesionUI() {
   const on = sesionActiva();
@@ -385,7 +382,6 @@ function mostrarBienvenida() {
   $("modal-bienvenida").classList.remove("hidden");
 }
 
-/* ---------- asistente de perfil ---------- */
 
 function datosCompletos() {
   const v = (id) => $(id).value.trim();
@@ -601,7 +597,6 @@ async function guardarPerfil() {
   }
 }
 
-/* ---------- para ti ---------- */
 
 function renderInicio() {
   if (!sesionActiva()) return;
@@ -652,7 +647,6 @@ function renderInicio() {
   });
 }
 
-/* ---------- explorar ---------- */
 
 function renderGrid(containerId, selectedId, onSelect) {
   const el = $(containerId);
@@ -819,7 +813,6 @@ async function verAlineacion() {
   }
 }
 
-/* ---------- eventos ---------- */
 
 document.querySelectorAll(".tab-btn").forEach((btn) => {
   btn.addEventListener("click", () => irAlApp(btn.dataset.view));
