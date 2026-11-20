@@ -13,6 +13,7 @@
 <header class="topbar">
   <div class="logo" id="logo">📍 CareerGPS</div>
   <nav class="tabs" id="tabs">
+    <button class="tab-btn" data-view="inicio">Para ti</button>
     <button class="tab-btn" data-view="demanda">Explorar demanda</button>
     <button class="tab-btn" data-view="relacionados">Puestos relacionados</button>
     <button class="tab-btn" data-view="perfil">Mi perfil</button>
@@ -67,6 +68,31 @@
     <div class="stats" id="stats"></div>
   </section>
 
+  <!-- INICIO -->
+  <section id="view-inicio" class="view">
+    <h2 id="inicio-saludo"></h2>
+    <p class="muted">Esto es lo que pide el mercado, comparado con tu perfil.</p>
+
+    <div id="inicio-vacio" class="card hidden">
+      <h3>Aún no elegiste habilidades</h3>
+      <p class="muted">Cuéntanos qué sabes y te mostramos qué puestos se parecen más a ti y qué aprender primero.</p>
+      <button class="btn-primary" id="btn-inicio-habilidades">Elegir mis habilidades ›</button>
+    </div>
+
+    <div id="inicio-contenido">
+      <div class="card">
+        <h3>Tus mejores coincidencias</h3>
+        <p class="muted">Toca un puesto para ver el detalle de tu alineación.</p>
+        <div id="inicio-ranking"></div>
+      </div>
+      <div class="card">
+        <h3>Aprende esto primero</h3>
+        <p class="muted">Las habilidades que más te acercarían a tus 3 mejores puestos.</p>
+        <div id="inicio-aprender" class="aprender-grid"></div>
+      </div>
+    </div>
+  </section>
+
   <!-- DEMANDA -->
   <section id="view-demanda" class="view">
     <p class="step">PASO 1</p>
@@ -115,13 +141,14 @@
 
   <section id="view-perfil" class="view">
     <div class="pasos" id="pasos">
-      <div class="paso" data-paso="1"><span>1</span> Tus datos</div>
+      <button type="button" class="paso" data-paso="1"><span>1</span> Tus datos</button>
       <div class="paso-linea"></div>
-      <div class="paso" data-paso="2"><span>2</span> Tus habilidades</div>
+      <button type="button" class="paso" data-paso="2"><span>2</span> Tus habilidades</button>
       <div class="paso-linea"></div>
       <div class="paso" data-paso="3"><span>3</span> ¡Listo!</div>
     </div>
-    <div class="card">
+
+    <div class="card" id="panel-datos">
       <h3 id="perfil-titulo">Crea tu perfil</h3>
       <p class="muted" id="perfil-subtitulo">Lo necesitamos para comparar tus habilidades con lo que pide el mercado.</p>
       <div class="fila-2">
@@ -143,20 +170,40 @@
       </div>
       <label for="input-carrera">Carrera</label>
       <input type="text" id="input-carrera" placeholder="Ej. Ingeniería de Sistemas">
-
-      <label>Mis habilidades</label>
-      <p class="muted">Toca una habilidad para marcar tu nivel. Cada toque lo cambia: básico, dominado, no tiene.</p>
-      <div class="leyenda">
-        <span class="nivel-tag nivel-basico">Básico</span>
-        <span class="nivel-tag nivel-dominado">Dominado</span>
-        <span class="nivel-tag nivel-no-tiene">No tiene</span>
+      <div class="acciones">
+        <button class="btn-primary" id="btn-siguiente">Siguiente ›</button>
       </div>
-      <div id="chips-habilidades" class="skill-grid"></div>
-
-      <p id="cambios-pendientes" class="muted"></p>
-      <button class="btn-primary" id="btn-guardar-perfil">Guardar perfil</button>
-      <p id="perfil-status" class="status-msg" role="status"></p>
     </div>
+
+    <div class="card hidden" id="panel-habilidades">
+      <h3>¿Qué sabes hacer?</h3>
+      <p class="muted">Elige las habilidades del catálogo y marca tu nivel. Verás cuántos puestos las piden.</p>
+
+      <div class="skill-layout">
+        <div class="skill-col">
+          <input type="text" id="buscar-habilidad" class="buscador" placeholder="🔎 Buscar habilidad…" autocomplete="off">
+          <div class="cat-pills" id="filtro-categorias"></div>
+          <div class="skill-grid" id="catalogo"></div>
+        </div>
+
+        <aside class="skill-col mis-habilidades">
+          <h4 id="seleccion-titulo">Mis habilidades</h4>
+          <div id="seleccion"></div>
+          <div class="fuerza">
+            <div class="fuerza-top"><span>Radar del mercado</span><strong id="fuerza-num">0/8</strong></div>
+            <div class="barra-track"><div class="barra-fill" id="fuerza-barra" style="width:0%"></div></div>
+            <p class="muted" id="fuerza-texto"></p>
+          </div>
+        </aside>
+      </div>
+
+      <div class="acciones">
+        <button class="btn-secondary" id="btn-atras">‹ Atrás</button>
+        <button class="btn-primary" id="btn-guardar-perfil">Crear mi perfil y entrar ›</button>
+      </div>
+    </div>
+
+    <p id="perfil-status" class="status-msg" role="status"></p>
   </section>
 
   <!-- ALINEACION -->
@@ -181,7 +228,7 @@
       <div class="alineacion-box warn">
         <strong>↗ Podrías fortalecer</strong>
         <div id="alineacion-fortalecer" class="chip-group"></div>
-        <p class="muted">Aparecen en la mayoría de las ofertas analizadas para este puesto.</p>
+        <p class="muted">El porcentaje indica en cuántas ofertas analizadas aparece cada habilidad.</p>
       </div>
     </div>
   </section>
@@ -195,7 +242,7 @@
     <p>Tu cuenta quedó creada con</p>
     <div class="codigo correo" id="modal-codigo"></div>
     <p class="muted">Ya puedes volver a ingresar con tu correo y contraseña cuando quieras.</p>
-    <button class="btn-primary" id="btn-modal-ok">Explorar el mercado ›</button>
+    <button class="btn-primary" id="btn-modal-ok">Ver mis coincidencias ›</button>
   </div>
 </div>
 

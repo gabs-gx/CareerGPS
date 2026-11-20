@@ -486,3 +486,43 @@ input:disabled { background: var(--cream); color: var(--muted); cursor: not-allo
 .link-btn.pequeno { margin-top: 8px; font-size: 0.8rem; }
 .codigo.correo { font-size: 1.05rem; letter-spacing: 0; word-break: break-all; padding: 14px 10px; }
 @media (max-width: 600px) { .fila-2 { grid-template-columns: 1fr; } }
+
+button.paso { background: none; border: none; font: inherit; cursor: pointer; }
+.acciones { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+.acciones .btn-secondary { margin-top: 0; }
+.acciones .btn-primary:only-child { margin-left: auto; }
+
+.skill-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; margin-top: 14px; }
+.buscador { margin-bottom: 10px; }
+.cat-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.cat-pill { background: var(--cream); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+.cat-pill.activa { background: var(--indigo); border-color: var(--indigo); color: white; }
+.skill-chip small { color: var(--muted); font-weight: 600; }
+.skill-chip.sel { border-style: solid; border-color: var(--indigo); background: var(--indigo-tint); }
+.skill-chip.sel small { color: var(--indigo-dark); }
+
+.mis-habilidades { background: var(--cream); border-radius: 14px; padding: 16px; align-self: start; }
+.mis-habilidades h4 { margin: 0 0 10px; }
+.sel-fila { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+.sel-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+.segmentado { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.segmentado button { border: 1px solid var(--border); background: white; border-radius: 8px; padding: 5px 2px; font: inherit; font-size: 0.72rem; font-weight: 600; cursor: pointer; }
+.segmentado button.on.nivel-basico { background: #fdeccb; color: #8a5a00; border-color: #f0c36d; }
+.segmentado button.on.nivel-dominado { background: #e0f5dd; color: #2f7a1f; border-color: #8fd47f; }
+.segmentado button.on.nivel-no-tiene { background: #fbe2e5; color: #a1324a; border-color: #eaa0ae; }
+.fuerza { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.fuerza-top { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+.fuerza .muted { margin: 8px 0 0; }
+
+.rank-row { display: block; width: 100%; background: none; border: none; border-bottom: 1px solid var(--border); padding: 12px 6px; cursor: pointer; font: inherit; color: inherit; text-align: left; border-radius: 8px; transition: background 0.15s ease; }
+.rank-row:hover { background: var(--indigo-tint); }
+.rank-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; gap: 10px; }
+.rank-pos { color: var(--muted); font-weight: 700; margin-right: 6px; }
+.rank-top strong { color: var(--indigo); }
+.aprender-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+.aprender-card { background: var(--lime-tint); border-radius: 14px; padding: 16px; }
+.aprender-card .num { font-size: 0.75rem; font-weight: 700; color: var(--ok-text); letter-spacing: 0.06em; }
+.aprender-card h4 { margin: 4px 0 6px; font-size: 1.1rem; }
+.aprender-card p { margin: 0; font-size: 0.8rem; color: var(--muted); }
+
+@media (max-width: 760px) { .skill-layout { grid-template-columns: 1fr; } }
