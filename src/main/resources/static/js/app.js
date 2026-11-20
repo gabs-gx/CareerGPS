@@ -49,6 +49,17 @@ try {
 const $ = (id) => document.getElementById(id);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+function enlacesBusqueda(nombre) {
+  const q = encodeURIComponent(nombre);
+  const slug = nombre.toLowerCase().trim().replace(/\s+/g, "-");
+  return [
+    ["LinkedIn", "https://www.linkedin.com/jobs/search/?keywords=" + q + "&location=Per%C3%BA"],
+    ["Computrabajo", "https://pe.computrabajo.com/trabajo-de-" + slug],
+    ["Indeed", "https://pe.indeed.com/jobs?q=" + q],
+    ["Bumeran", "https://www.bumeran.com.pe/empleos-busqueda-" + slug + ".html"],
+  ].map(([n, u]) => '<a class="enlace-ext" href="' + u + '" target="_blank" rel="noopener noreferrer">' + n + " ↗</a>").join("");
+}
+
 function esc(texto) {
   const d = document.createElement("div");
   d.textContent = String(texto);
@@ -273,7 +284,7 @@ async function evaluarAlertas() {
         return;
       }
       const orden = lista.slice().sort((a, b) => Math.abs(b.ahora - b.antes) - Math.abs(a.ahora - a.antes));
-      nuevas.push([tipo, "Tu alineación " + verbo + " en " + lista.length + " puestos. Lo más notable: " + detalle(orden[0]) + " y " + detalle(orden[1]) + "."]);
+      nuevas.push([tipo, "Tu alineación " + verbo + " en " + lista.length + " roles. Lo más notable: " + detalle(orden[0]) + " y " + detalle(orden[1]) + "."]);
     };
     resumir(subidas, "sube", "subió");
     resumir(bajadas, "baja", "bajó");
@@ -314,7 +325,7 @@ function actualizarSesionUI() {
   $("perfil-subtitulo").textContent = on
     ? "Tus datos de cuenta. Solo la carrera se puede cambiar."
     : "Lo necesitamos para comparar tus habilidades con lo que pide el mercado.";
-  $("btn-guardar-perfil").textContent = on ? "Guardar cambios" : "Crear mi perfil y entrar ›";
+  $("btn-guardar-perfil").textContent = "Guardar y continuar ›";
   $("user-badge").textContent = state.nombres ? state.nombres.trim()[0].toUpperCase() : "👤";
   $("menu-nombre").textContent = nombreCompleto() || "Mi cuenta";
   $("menu-carrera").textContent = state.carrera || "";
@@ -377,7 +388,7 @@ async function ingresar() {
 }
 
 function mostrarBienvenida() {
-  $("modal-titulo").textContent = "¡Listo, " + (state.nombres || "bienvenido/a") + "!";
+  $("modal-titulo").textContent = "¡Perfil creado, " + (state.nombres || "bienvenido/a") + "!";
   $("modal-codigo").textContent = state.correo || "";
   $("modal-bienvenida").classList.remove("hidden");
 }
@@ -409,7 +420,7 @@ function actualizarPasos() {
   pasos[1].classList.toggle("hecho", state.paso === 2 && datos && habilidades);
   pasos[2].classList.toggle("actual", state.paso === 2 && datos && habilidades);
   $("btn-siguiente").disabled = !datos;
-  $("btn-guardar-perfil").disabled = !(datos && (sesionActiva() || habilidades));
+  $("btn-guardar-perfil").disabled = !(datos && sesionActiva());
 }
 
 function renderCategorias() {
@@ -439,7 +450,7 @@ function renderCatalogo() {
     btn.type = "button";
     btn.className = "skill-chip" + (state.nivelesUI[h.id] ? " sel" : "");
     btn.innerHTML = "<span>" + (state.nivelesUI[h.id] ? "✓ " : "") + esc(h.nombre) + "</span>" +
-      (n ? "<small>📈 " + n + (n === 1 ? " puesto" : " puestos") + "</small>" : "");
+      (n ? "<small>📈 " + n + (n === 1 ? " rol" : " roles") + "</small>" : "");
     btn.onclick = () => {
       if (state.nivelesUI[h.id]) {
         if (state.nivelesGuardados[h.id]) return toast("Esa habilidad ya está guardada. Cambia su nivel a la derecha.");
@@ -537,66 +548,96 @@ async function cargarMiPerfil() {
   actualizarSesionUI();
 }
 
+async function actualizarCarrera(carrera) {
+  if (carrera === state.carrera) return;
+  try {
+    await fetchJson(API + "/estudiantes/" + state.estudianteId, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ carrera }),
+    });
+  } catch (e) {
+    if (e.status === 404) {
+      olvidarEstudiante();
+      throw new Error("Tu cuenta ya no existe. Crea una nueva.");
+    }
+    throw e;
+  }
+  state.carrera = carrera;
+  guardarSesion();
+}
+
+async function continuarDesdeDatos() {
+  const btn = $("btn-siguiente");
+  const statusEl = $("perfil-status");
+  const v = (id) => $(id).value.trim();
+  statusEl.className = "status-msg";
+  statusEl.textContent = "";
+  if (!datosCompletos()) return;
+  btn.disabled = true;
+  btn.textContent = "Creando tu perfil…";
+  try {
+    if (sesionActiva()) {
+      await actualizarCarrera(v("input-carrera"));
+      irPaso(2);
+    } else {
+      const sesion = await fetchJson(API + "/auth/registro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombres: v("input-nombres"), apellidos: v("input-apellidos"), correo: v("input-correo"),
+          password: $("input-password").value, carrera: v("input-carrera"),
+        }),
+      });
+      aplicarSesion(sesion);
+      $("input-password").value = "";
+      actualizarSesionUI();
+      mostrarBienvenida();
+    }
+  } catch (e) {
+    statusEl.className = "error-msg";
+    statusEl.textContent = e.message;
+  } finally {
+    btn.textContent = "Listo ›";
+    actualizarPasos();
+  }
+}
+
 async function guardarPerfil() {
   const btn = $("btn-guardar-perfil");
   const statusEl = $("perfil-status");
-  const v = (id) => $(id).value.trim();
-  const carrera = v("input-carrera");
-  const eraNuevo = !sesionActiva();
   statusEl.className = "status-msg";
   statusEl.textContent = "";
-  if (!datosCompletos()) {
+  if (!sesionActiva() || !datosCompletos()) {
     statusEl.className = "error-msg";
-    statusEl.textContent = "Completa todos tus datos para continuar.";
+    statusEl.textContent = "Primero completa tus datos y pulsa Listo.";
     return irPaso(1);
   }
   btn.disabled = true;
   btn.textContent = "Guardando…";
   try {
-    const json = (method, cuerpo) => ({
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(cuerpo),
-    });
-    if (eraNuevo) {
-      const sesion = await fetchJson(API + "/auth/registro", json("POST", {
-        nombres: v("input-nombres"), apellidos: v("input-apellidos"), correo: v("input-correo"),
-        password: $("input-password").value, carrera,
-      }));
-      aplicarSesion(sesion);
-      $("input-password").value = "";
-    } else {
-      try {
-        await fetchJson(API + "/estudiantes/" + state.estudianteId, json("PUT", { carrera }));
-      } catch (e) {
-        if (e.status === 404) {
-          olvidarEstudiante();
-          throw new Error("Tu cuenta ya no existe. Crea una nueva.");
-        }
-        throw e;
-      }
-      state.carrera = carrera;
-      guardarSesion();
-    }
+    await actualizarCarrera($("input-carrera").value.trim());
     for (const id of Object.keys(state.nivelesUI).filter((k) => state.nivelesUI[k] !== state.nivelesGuardados[k])) {
-      await fetchJson(API + "/estudiantes/" + state.estudianteId + "/habilidades",
-        json("POST", { habilidadId: Number(id), nivel: state.nivelesUI[id] }));
+      await fetchJson(API + "/estudiantes/" + state.estudianteId + "/habilidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ habilidadId: Number(id), nivel: state.nivelesUI[id] }),
+      });
     }
     state.nivelesGuardados = Object.assign({}, state.nivelesUI);
     actualizarSesionUI();
     renderChips();
     await evaluarAlertas();
-    if (eraNuevo) mostrarBienvenida();
-    else { toast("Perfil guardado ✓", "ok"); irAlApp("inicio"); }
+    toast("Perfil guardado ✓", "ok");
+    irAlApp("inicio");
   } catch (e) {
     statusEl.className = "error-msg";
     statusEl.textContent = e.message;
   } finally {
-    btn.disabled = false;
-    actualizarSesionUI();
+    btn.textContent = "Guardar y continuar ›";
+    actualizarPasos();
   }
 }
-
 
 function renderInicio() {
   if (!sesionActiva()) return;
@@ -637,12 +678,12 @@ function renderInicio() {
   }));
   const top = Object.values(acumulado).sort((a, b) => b.total - a.total).slice(0, 3);
   const aprender = $("inicio-aprender");
-  aprender.innerHTML = top.length ? "" : '<p class="muted">¡Ya cubres lo que piden tus mejores puestos!</p>';
+  aprender.innerHTML = top.length ? "" : '<p class="muted">¡Ya cubres lo que piden tus mejores roles!</p>';
   top.forEach((t, i) => {
     const card = document.createElement("div");
     card.className = "aprender-card";
     card.innerHTML = '<span class="num">PRIORIDAD ' + (i + 1) + '</span><h4>' + esc(t.nombre) + '</h4><p>Se pide en ' + t.puestos +
-      (t.puestos === 1 ? " de tus 3 mejores puestos" : " de tus 3 mejores puestos") + ', en promedio en el ' + Math.round(t.total / t.puestos) + '% de sus ofertas.</p>';
+      (t.puestos === 1 ? " de tus 3 mejores roles" : " de tus 3 mejores roles") + ', en promedio en el ' + Math.round(t.total / t.puestos) + '% de sus ofertas.</p>';
     aprender.appendChild(card);
   });
 }
@@ -701,10 +742,11 @@ async function verDemanda() {
   errorEl.classList.add("hidden");
   resultadoEl.classList.add("hidden");
 
-  if (!state.puestoDemandaId) return mostrarError("demanda-error", "Primero elige un puesto.");
+  if (!state.puestoDemandaId) return mostrarError("demanda-error", "Primero elige un rol.");
   try {
     const demanda = await fetchJson(API + "/puestos/" + state.puestoDemandaId + "/demanda");
     $("demanda-titulo").textContent = demanda.puestoNombre;
+    $("demanda-enlaces").innerHTML = enlacesBusqueda(demanda.puestoNombre);
     animarNumero($("demanda-total"), demanda.totalOfertas, (x) => x + " ofertas analizadas", 700);
     const barrasEl = $("demanda-barras");
     barrasEl.innerHTML = "";
@@ -737,16 +779,16 @@ async function verRelacionados(puestoId) {
   const id = puestoId || state.puestoRelacionadosId;
   const errorEl = $("relacionados-error");
   errorEl.classList.add("hidden");
-  if (!id) return mostrarError("relacionados-error", "Primero elige un puesto.");
+  if (!id) return mostrarError("relacionados-error", "Primero elige un rol.");
   state.puestoRelacionadosId = id;
   refrescarPuestos();
   try {
     const relacionados = await fetchJson(API + "/puestos/" + id + "/relacionados");
     const puesto = state.puestos.find((p) => p.id === id);
-    $("relacionados-titulo").textContent = "Puestos relacionados con " + (puesto ? puesto.nombre : "");
+    $("relacionados-titulo").textContent = "Roles relacionados con " + (puesto ? puesto.nombre : "");
     const listaEl = $("relacionados-lista");
     listaEl.innerHTML = relacionados.length === 0
-      ? '<p class="muted">No hay puestos con habilidades en común todavía.</p>'
+      ? '<p class="muted">No hay roles con habilidades en común todavía.</p>'
       : "";
     relacionados.forEach((r) => {
       const pct = Math.round(r.similitud * 100);
@@ -783,10 +825,11 @@ async function verAlineacion() {
   if (!state.estudianteId) {
     return mostrarError("alineacion-error", "Primero crea tu perfil.");
   }
-  if (!state.puestoAlineacionId) return mostrarError("alineacion-error", "Elige un puesto para comparar.");
+  if (!state.puestoAlineacionId) return mostrarError("alineacion-error", "Elige un rol para comparar.");
   try {
     const a = await fetchJson(API + "/estudiantes/" + state.estudianteId + "/alineacion/" + state.puestoAlineacionId);
     $("alineacion-titulo").textContent = "Tu alineación con " + a.puestoNombre;
+    $("alineacion-enlaces").innerHTML = enlacesBusqueda(a.puestoNombre);
     const demanda = state.demandas[state.puestoAlineacionId];
     const porcentaje = (nombre) => {
       const h = demanda && demanda.habilidades.find((x) => x.nombre === nombre);
@@ -796,12 +839,12 @@ async function verAlineacion() {
       ? lista.map((c) => "<span class='chip'>" + esc(c) + (extra ? porcentaje(c) : "") + "</span>").join("")
       : "<span class='muted'>" + vacio + "</span>";
     $("alineacion-coincidencias").innerHTML = chips(a.coincidencias, "Ninguna todavía", false);
-    $("alineacion-fortalecer").innerHTML = chips(a.aFortalecer, "¡Dominas todo lo que pide este puesto!", true);
+    $("alineacion-fortalecer").innerHTML = chips(a.aFortalecer, "¡Dominas todo lo que pide este rol!", true);
 
     const total = a.coincidencias.length + a.aFortalecer.length;
     const pct = total ? Math.round(a.coincidencias.length * 100 / total) : 0;
     $("ring-texto").textContent = total
-      ? "Cubres " + a.coincidencias.length + " de las " + total + " habilidades que pide este puesto."
+      ? "Cubres " + a.coincidencias.length + " de las " + total + " habilidades que pide este rol."
       : "Este puesto todavía no tiene habilidades registradas.";
     const ring = $("ring");
     ring.style.setProperty("--p", 0);
@@ -840,12 +883,12 @@ $("btn-ver-password").addEventListener("click", () => {
   campo.type = oculto ? "text" : "password";
   $("btn-ver-password").textContent = oculto ? "Ocultar contraseña" : "Mostrar contraseña";
 });
-$("btn-siguiente").addEventListener("click", () => irPaso(2));
+$("btn-siguiente").addEventListener("click", continuarDesdeDatos);
 $("btn-atras").addEventListener("click", () => irPaso(1));
 document.querySelectorAll("button.paso").forEach((p) => {
   p.addEventListener("click", () => {
     const destino = Number(p.dataset.paso);
-    if (destino === 2 && !datosCompletos()) return toast("Completa tus datos primero", "error");
+    if (destino === 2 && !sesionActiva()) return toast("Primero pulsa Listo para crear tu perfil", "error");
     irPaso(destino);
   });
 });
@@ -890,7 +933,7 @@ $("user-menu").addEventListener("click", (e) => e.stopPropagation());
 $("alert-menu").addEventListener("click", (e) => e.stopPropagation());
 $("btn-modal-ok").addEventListener("click", () => {
   $("modal-bienvenida").classList.add("hidden");
-  irAlApp("inicio");
+  irPaso(2);
 });
 $("btn-ver-relacionados-desde-demanda").addEventListener("click", () => verRelacionados(state.puestoDemandaId));
 $("btn-guardar-perfil").addEventListener("click", guardarPerfil);

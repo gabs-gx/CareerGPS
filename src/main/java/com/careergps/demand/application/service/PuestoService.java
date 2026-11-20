@@ -54,12 +54,12 @@ public class PuestoService {
 
     public DemandaDTO calcularDemanda(Long puestoId) {
         Puesto puesto = puestoRepository.findById(puestoId)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Puesto no encontrado: " + puestoId));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol no encontrado: " + puestoId));
 
         long totalOfertas = ofertaRepository.countByPuestoId(puestoId);
         if (totalOfertas < MINIMO_OFERTAS) {
             throw new DatosInsuficientesException(
-                    "Se necesitan al menos " + MINIMO_OFERTAS + " ofertas para calcular la demanda de este puesto");
+                    "Se necesitan al menos " + MINIMO_OFERTAS + " ofertas para calcular la demanda de este rol");
         }
 
         List<HabilidadFrecuencia> habilidades = ofertaHabilidadRepository.contarFrecuenciaPorPuesto(puestoId).stream()
@@ -89,7 +89,7 @@ public class PuestoService {
 
     public List<PuestoRelacionadoDTO> obtenerPuestosRelacionados(Long puestoId) {
         puestoRepository.findById(puestoId)
-                .orElseThrow(() -> new RecursoNoEncontradoException("Puesto no encontrado: " + puestoId));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol no encontrado: " + puestoId));
 
         return puestoRepository.findAll().stream()
                 .filter(otro -> !otro.getId().equals(puestoId))

@@ -15,7 +15,7 @@
   <nav class="tabs" id="tabs">
     <button class="tab-btn" data-view="inicio">Para ti</button>
     <button class="tab-btn" data-view="demanda">Explorar demanda</button>
-    <button class="tab-btn" data-view="relacionados">Puestos relacionados</button>
+    <button class="tab-btn" data-view="relacionados">Roles relacionados</button>
     <button class="tab-btn" data-view="perfil">Mi perfil</button>
     <button class="tab-btn" data-view="alineacion">Mi alineación</button>
   </nav>
@@ -58,11 +58,11 @@
       <div class="feature-card" data-go="demanda" tabindex="0" role="button">
         <div class="feature-icon indigo">📡</div>
         <h3>Radar del mercado</h3>
-        <p>Habilidades más pedidas por tipo de puesto.</p>
+        <p>Habilidades más pedidas por tipo de rol.</p>
       </div>
       <div class="feature-card" data-go="relacionados" tabindex="0" role="button">
         <div class="feature-icon lime">🔗</div>
-        <h3>Puestos relacionados</h3>
+        <h3>Roles relacionados</h3>
         <p>Explora perfiles afines según sus habilidades.</p>
       </div>
       <div class="feature-card" data-go="alineacion" tabindex="0" role="button">
@@ -73,6 +73,29 @@
     </div>
 
     <div class="stats" id="stats"></div>
+
+    <div class="comparativa">
+      <h3>¿En qué se diferencia de LinkedIn o Computrabajo?</h3>
+      <div class="comp-grid">
+        <div class="comp-col">
+          <h4>Bolsas de empleo</h4>
+          <ul>
+            <li>Te muestran ofertas sueltas, una por una</li>
+            <li>Comparan tu perfil con una sola oferta</li>
+            <li>Sirven para postular</li>
+          </ul>
+        </div>
+        <div class="comp-col destacada">
+          <h4>CareerGPS</h4>
+          <ul>
+            <li>Resume lo que piden todas las ofertas de un rol</li>
+            <li>Compara tu perfil con el rol completo</li>
+            <li>Te dice qué aprender primero y te avisa cuando el mercado cambia</li>
+          </ul>
+        </div>
+      </div>
+      <p class="muted">Cuando quieras postular, te llevamos a esas bolsas.</p>
+    </div>
   </section>
 
   <!-- INICIO -->
@@ -82,19 +105,19 @@
 
     <div id="inicio-vacio" class="card hidden">
       <h3>Aún no elegiste habilidades</h3>
-      <p class="muted">Cuéntanos qué sabes y te mostramos qué puestos se parecen más a ti y qué aprender primero.</p>
+      <p class="muted">Cuéntanos qué sabes y te mostramos qué roles se parecen más a ti y qué aprender primero.</p>
       <button class="btn-primary" id="btn-inicio-habilidades">Elegir mis habilidades ›</button>
     </div>
 
     <div id="inicio-contenido">
       <div class="card">
         <h3>Tus mejores coincidencias</h3>
-        <p class="muted">Toca un puesto para ver el detalle de tu alineación.</p>
+        <p class="muted">Toca un rol para ver el detalle de tu alineación.</p>
         <div id="inicio-ranking"></div>
       </div>
       <div class="card">
         <h3>Aprende esto primero</h3>
-        <p class="muted">Las habilidades que más te acercarían a tus 3 mejores puestos.</p>
+        <p class="muted">Las habilidades que más te acercarían a tus 3 mejores roles.</p>
         <div id="inicio-aprender" class="aprender-grid"></div>
       </div>
     </div>
@@ -112,21 +135,25 @@
         <h3 id="demanda-titulo"></h3>
         <span class="badge" id="demanda-total"></span>
       </div>
-      <p class="muted">Frecuencia de cada habilidad entre las ofertas registradas para este puesto.</p>
+      <p class="muted">Frecuencia de cada habilidad entre las ofertas registradas para este rol.</p>
       <div id="demanda-barras"></div>
-      <button class="btn-secondary" id="btn-ver-relacionados-desde-demanda">Ver puestos relacionados ›</button>
+      <div class="busqueda-externa">
+        <p class="muted">¿Quieres ver ofertas reales de este rol? Se abren en otra pestaña:</p>
+        <div class="enlaces" id="demanda-enlaces"></div>
+      </div>
+      <button class="btn-secondary" id="btn-ver-relacionados-desde-demanda">Ver roles relacionados ›</button>
     </div>
   </section>
 
   <!-- RELACIONADOS -->
   <section id="view-relacionados" class="view">
-    <h2>¿Con qué puesto quieres comparar?</h2>
+    <h2>¿Con qué rol quieres comparar?</h2>
     <div class="puesto-grid" id="puestos-relacionados"></div>
     <p id="relacionados-error" class="error-msg hidden"></p>
 
     <div id="relacionados-resultado" class="card hidden">
       <h3 id="relacionados-titulo"></h3>
-      <p class="muted">Toca un puesto para ver su demanda de habilidades.</p>
+      <p class="muted">Toca un rol para ver su demanda de habilidades.</p>
       <div id="relacionados-lista"></div>
     </div>
   </section>
@@ -184,7 +211,7 @@
 
     <div class="card hidden" id="panel-habilidades">
       <h3>¿Qué sabes hacer?</h3>
-      <p class="muted">Elige las habilidades del catálogo y marca tu nivel. Verás cuántos puestos las piden.</p>
+      <p class="muted">Elige las habilidades del catálogo y marca tu nivel. Verás cuántos roles las piden.</p>
 
       <div class="skill-layout">
         <div class="skill-col">
@@ -215,7 +242,7 @@
 
   <!-- ALINEACION -->
   <section id="view-alineacion" class="view">
-    <h2>Compara tu perfil contra un puesto</h2>
+    <h2>Compara tu perfil contra un rol</h2>
     <div class="puesto-grid" id="puestos-alineacion"></div>
     <p id="alineacion-error" class="error-msg hidden"></p>
 
@@ -230,6 +257,11 @@
       <div class="alineacion-box ok">
         <strong>✓ Coincidencias</strong>
         <div id="alineacion-coincidencias" class="chip-group"></div>
+      </div>
+
+      <div class="busqueda-externa">
+        <p class="muted">Cuando quieras postular, busca ofertas reales de este rol:</p>
+        <div class="enlaces" id="alineacion-enlaces"></div>
       </div>
 
       <div class="alineacion-box warn">
@@ -249,7 +281,7 @@
     <p>Tu cuenta quedó creada con</p>
     <div class="codigo correo" id="modal-codigo"></div>
     <p class="muted">Ya puedes volver a ingresar con tu correo y contraseña cuando quieras.</p>
-    <button class="btn-primary" id="btn-modal-ok">Ver mis coincidencias ›</button>
+    <button class="btn-primary" id="btn-modal-ok">Elegir mis habilidades ›</button>
   </div>
 </div>
 

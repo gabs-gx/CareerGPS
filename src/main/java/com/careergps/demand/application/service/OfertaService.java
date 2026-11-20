@@ -85,7 +85,7 @@ public class OfertaService {
 
     private void validarReferencias(OfertaRequestDTO dto) {
         puestoRepository.findById(dto.puestoId())
-                .orElseThrow(() -> new RecursoNoEncontradoException("Puesto no encontrado: " + dto.puestoId()));
+                .orElseThrow(() -> new RecursoNoEncontradoException("Rol no encontrado: " + dto.puestoId()));
         if (dto.habilidadIdsConfirmadas() != null) {
             for (Long habilidadId : dto.habilidadIdsConfirmadas()) {
                 habilidadRepository.findById(habilidadId)
